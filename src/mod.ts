@@ -15,7 +15,7 @@ export class Hypermore {
   /** Extracted fragments and their target portals */
   #fragments: Set<{html: string; portal: string}>;
 
-  constructor(options: HypermoreOptions) {
+  constructor(options: HypermoreOptions = {}) {
     this.globalProps = structuredClone(options.globalProps ?? {});
     this.#templates = new Map();
     this.localProps = {};
