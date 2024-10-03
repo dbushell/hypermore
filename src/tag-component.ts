@@ -1,4 +1,4 @@
-import type {Node, Hypermore, RenderTag} from './types.ts';
+import type {Node, Hypermore, HypermoreTag} from './types.ts';
 import {evaluateText} from './evaluate.ts';
 
 const tagName = 'Component';
@@ -94,11 +94,11 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   return context.renderNode(template, props);
 };
 
-const RenderTag: RenderTag = {
+const HypermoreTag: HypermoreTag = {
   tagName,
   match,
   render,
   validate
 };
 
-export default RenderTag;
+export default HypermoreTag;

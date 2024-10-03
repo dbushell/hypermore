@@ -1,4 +1,4 @@
-import type {Props, RenderOptions} from './types.ts';
+import type {Props, HypermoreOptions} from './types.ts';
 import {Node, parseHTML} from './parse.ts';
 import tagIf from './tag-if.ts';
 import tagFor from './tag-for.ts';
@@ -15,7 +15,7 @@ export class Hypermore {
   /** Extracted fragments and their target portals */
   #fragments: Set<{html: string; portal: string}>;
 
-  constructor(options: RenderOptions) {
+  constructor(options: HypermoreOptions) {
     this.globalProps = structuredClone(options.globalProps ?? {});
     this.#templates = new Map();
     this.localProps = {};

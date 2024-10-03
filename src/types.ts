@@ -21,12 +21,12 @@ export type Props = JSONObject;
 
 export type Deferred<T> = ReturnType<typeof Promise.withResolvers<T>>;
 
-export type RenderOptions = {
+export type HypermoreOptions = {
   globalProps?: Props;
   templates?: Map<string, string>;
 };
 
-export type RenderTag = {
+export type HypermoreTag = {
   tagName: string;
   match: (node: Node) => boolean;
   validate: (node: Node, context: Hypermore) => boolean;
