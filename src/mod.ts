@@ -50,8 +50,9 @@ export class Hypermore {
   async cloneTemplate(name: string): Promise<Node | undefined> {
     const template = this.#templates.get(name);
     if (template === undefined) return undefined;
-    await this.parseNode(template);
-    return template.clone();
+    const node = template.clone();
+    await this.parseNode(node);
+    return node;
   }
 
   /**
