@@ -1,4 +1,4 @@
-import type {Hypermore} from '../types.ts';
+import type {Hypermore} from './types.ts';
 import {escape} from './parse.ts';
 import {reservedProps} from './utils.ts';
 

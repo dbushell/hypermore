@@ -1,4 +1,4 @@
-import type {RenderTag, Hypermore} from '../types.ts';
+import type {RenderTag, Hypermore} from './types.ts';
 import {evaluateContext} from './evaluate.ts';
 import {Node} from './parse.ts';
 
@@ -18,10 +18,7 @@ const validate = (node: Node): boolean => {
   return true;
 };
 
-const render = async (
-  node: Node,
-  context: Hypermore
-): Promise<string | undefined> => {
+const render = async (node: Node, context: Hypermore): Promise<string> => {
   const expression = node.attributes.get('condition')!;
 
   // Separate child nodes by secondary conditions
@@ -42,7 +39,7 @@ const render = async (
       const expression = child.attributes.get('condition');
       if (expression === undefined) {
         console.warn(`<elseif> with invalid condition`);
-        return;
+        return '';
       }
       conditions.push({
         expression,
@@ -64,6 +61,7 @@ const render = async (
       return context.renderChildren(statement);
     }
   }
+  return '';
 };
 
 const RenderTag: RenderTag = {

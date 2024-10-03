@@ -1,4 +1,4 @@
-import type {RenderTag, Hypermore} from '../types.ts';
+import type {RenderTag, Hypermore} from './types.ts';
 import {evaluateContext} from './evaluate.ts';
 import {Node} from './parse.ts';
 import {isVariable} from './utils.ts';
@@ -29,10 +29,7 @@ const validate = (node: Node): boolean => {
   return true;
 };
 
-const render = async (
-  node: Node,
-  context: Hypermore
-): Promise<string | undefined> => {
+const render = async (node: Node, context: Hypermore): Promise<string> => {
   const itemProp = node.attributes.get('item')!;
   const indexProp = node.attributes.get('index');
 
@@ -54,7 +51,7 @@ const render = async (
   // @ts-ignore ensure items is iterable
   if (typeof items[Symbol.iterator] !== 'function') {
     console.warn(`<for> invalid "of" property (not iterable)`);
-    return;
+    return '';
   }
 
   // Move <for> children into template

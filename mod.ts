@@ -1,1 +1,1 @@
-export {Hypermore} from './src/preprocessor/mod.ts';
+export {Hypermore} from './src/mod.ts';

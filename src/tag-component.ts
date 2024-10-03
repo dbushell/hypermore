@@ -1,4 +1,4 @@
-import type {Node, Hypermore, RenderTag} from '../types.ts';
+import type {Node, Hypermore, RenderTag} from './types.ts';
 import {evaluateText} from './evaluate.ts';
 
 const tagName = 'Component';
@@ -22,12 +22,9 @@ const validate = (node: Node, context: Hypermore): boolean => {
   return true;
 };
 
-const render = async (
-  node: Node,
-  context: Hypermore
-): Promise<string | undefined> => {
+const render = async (node: Node, context: Hypermore): Promise<string> => {
   if (validate(node, context) === false) {
-    return;
+    return '';
   }
 
   const slots = new Map<string, Node>();

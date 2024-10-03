@@ -1,5 +1,5 @@
-import type {Node} from './preprocessor/parse.ts';
-import type {Hypermore} from './preprocessor/mod.ts';
+import type {Node} from './parse.ts';
+import type {Hypermore} from './mod.ts';
 
 export type {Node, Hypermore};
 
@@ -21,19 +21,14 @@ export type Props = JSONObject;
 
 export type Deferred<T> = ReturnType<typeof Promise.withResolvers<T>>;
 
-export type Adapter = {
-  readTextFile: (path: string | URL) => Promise<string>;
-};
-
 export type RenderOptions = {
-  adapter: Adapter;
   globalProps?: Props;
-  templates?: Map<string, string | URL>;
+  templates?: Map<string, string>;
 };
 
 export type RenderTag = {
   tagName: string;
   match: (node: Node) => boolean;
   validate: (node: Node, context: Hypermore) => boolean;
-  render: (node: Node, context: Hypermore) => Promise<string | undefined>;
+  render: (node: Node, context: Hypermore) => Promise<string>;
 };
