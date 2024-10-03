@@ -138,29 +138,23 @@ export class Hypermore {
         }
         return this.renderParent(node);
       case 'INVISIBLE':
-        if (node.tag === 'else') {
-          console.warn(`<else> outside of <if>`);
-          return '';
-        }
-        if (node.tag === 'elseif') {
-          console.warn(`<elseif> outside of <if>`);
-          return '';
-        }
-        if (node.tag === 'if') {
-          return tagIf.render(node, this);
-        }
-        if (node.tag === 'for') {
-          return tagFor.render(node, this);
-        }
-        if (node.tag === 'slot') {
-          return this.renderChildren(node);
-        }
-        if (node.tag === 'fragment') {
-          console.log(`FRAGMENT`);
-          return '';
-        }
-        if (node.tag === 'portal') {
-          return this.renderChildren(node);
+        switch (node.tag) {
+          case 'else':
+            console.warn(`<else> outside of <if>`);
+            return '';
+          case 'elseif':
+            console.warn(`<elseif> outside of <if>`);
+            return '';
+          case 'if':
+            return tagIf.render(node, this);
+          case 'for':
+            return tagFor.render(node, this);
+          case 'fragment':
+            throw new Error('<fragment> unknown');
+          case 'slot':
+            return this.renderChildren(node);
+          case 'portal':
+            return this.renderChildren(node);
         }
         return this.renderParent(node);
     }
