@@ -1,6 +1,6 @@
 # 🎃 Hypermore
 
-An experimental HTML preprocessor, template engine, and SSR web framework written in TypeScript.
+Experimental HTML preprocessor / template engine.
 
 * * *
 
