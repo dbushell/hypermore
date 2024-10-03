@@ -12,7 +12,6 @@
     "include": ["**/*.ts"]
   },
   "imports": {
-    "@dbushell/hyperless": "jsr:@dbushell/hyperless@^0.9.0",
-    "@ssr/velocirouter": "jsr:@ssr/velocirouter@^0.10.0"
+    "@dbushell/hyperless": "jsr:@dbushell/hyperless@^0.10.0"
   }
 }

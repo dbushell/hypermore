@@ -37,14 +37,26 @@ export class Hypermore {
   async #loadTemplates(templates: Map<string, string | URL>): Promise<void> {
     this.#loading = Promise.withResolvers();
     for (const [name, path] of templates.entries()) {
-      const text = await this.adapter.readTextFile(path);
-      const node = parseHTML(text, {
-        rootTag: /^\w+$/.test(name) ? name : undefined
-      });
-      this.preprocess(node);
-      this.#templates.set(name, node);
+      const html = await this.adapter.readTextFile(path);
+      this.setTemplate(name, html);
     }
     this.#loading.resolve(true);
+  }
+
+  /**
+   * Set a template
+   * @param name Name must match [A-Z][\w:-]*
+   * @param html HTML string
+   */
+  setTemplate(name: string, html: string): void {
+    if (/[A-Z][\w:-]*/.test(name) === false) {
+      throw new Error(`invalid template name`);
+    }
+    const node = parseHTML(html, {
+      rootTag: /^\w+$/.test(name) ? name : undefined
+    });
+    this.preprocess(node);
+    this.#templates.set(name, node);
   }
 
   /** Returns `true` if named template is usable */
@@ -52,7 +64,7 @@ export class Hypermore {
     return this.#templates.has(name);
   }
 
-  /** Return a clone of the named template */
+  /** Returns a clone of the named template */
   cloneTemplate(name: string): Node | undefined {
     const template = this.#templates.get(name);
     if (template === undefined) return undefined;
@@ -60,24 +72,38 @@ export class Hypermore {
   }
 
   /**
-   * Render HTML using root Node template
+   * Render HTML from file template
    * - Options from class constructor are used
    * @param path Path to template
    * @returns HTML string
    */
-  async render(path: string | URL): Promise<string> {
+  async renderFile(path: string | URL): Promise<string> {
     this.localProps = {};
     this.portals = new Map();
     // Wait for contructor templates to load
     await this.loading;
     // Ensure the template path provided has been loaded
     const name = path.toString();
-    if (this.#templates.has(name) === false) {
+    if (this.hasTemplate(name) === false) {
       await this.#loadTemplates(new Map([[name, path]]));
     }
     const node = this.cloneTemplate(name)!;
     this.preprocess(node);
-    const rendered = await this.renderNode(node);
+    const rendered = await this.renderNode(node, {});
+    return rendered ?? '';
+  }
+
+  /**
+   * Render HTML from string template
+   * - Options from class constructor are used
+   * @param html Template string
+   * @returns HTML string
+   */
+  async renderString(html: string): Promise<string> {
+    await this.loading;
+    const node = parseHTML(html);
+    this.preprocess(node);
+    const rendered = await this.renderNode(node, {});
     return rendered ?? '';
   }
 

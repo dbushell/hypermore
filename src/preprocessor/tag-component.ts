@@ -10,7 +10,7 @@ const match = (node: Node): boolean =>
 
 const validate = (node: Node, context: Hypermore): boolean => {
   if (context.hasTemplate(node.tagRaw) === false) {
-    console.warn(`unknown import "${node.tag}"`);
+    console.warn(`<${node.tagRaw}> missing template`);
     return false;
   }
   /** @todo improve detection */
@@ -26,6 +26,10 @@ const render = async (
   node: Node,
   context: Hypermore
 ): Promise<string | undefined> => {
+  if (validate(node, context) === false) {
+    return;
+  }
+
   const slots = new Map<string, Node>();
   const targets = new Map<Node, string>();
   const fragments = new Set<Node>();

@@ -9,7 +9,7 @@ const match = (node: Node): boolean => node.tag === tagName;
 
 const validate = (node: Node): boolean => {
   if (node.size === 0) {
-    console.warn(`<for> missing statement`);
+    console.warn(`<for> with no statement`);
     return false;
   }
   if (node.attributes.has('of') === false) {
