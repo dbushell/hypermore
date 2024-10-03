@@ -60,7 +60,10 @@ export class Hypermore {
    * @param html Template string
    * @returns HTML string
    */
-  async render(html: string): Promise<string> {
+  async render(html: string, options?: HypermoreOptions): Promise<string> {
+    if (options?.globalProps) {
+      this.globalProps = structuredClone(options.globalProps);
+    }
     // Reset previous renders
     this.#portals = new Map();
     this.#fragments = new Set();
