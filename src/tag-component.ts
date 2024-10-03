@@ -32,10 +32,10 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   const fragments = new Set<Node>();
   const cleared = new Set<Node>();
 
-  const template = context.cloneTemplate(node.tagRaw)!;
+  const template = (await context.cloneTemplate(node.tagRaw))!;
   template.type = 'INVISIBLE';
 
-  template.traverse((n) => {
+  await template.traverse((n) => {
     if (match(n)) return false;
     if (n.tag === 'slot') {
       const name = n.attributes.get('name');
@@ -43,7 +43,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
     }
   });
 
-  node.traverse((n) => {
+  await node.traverse((n) => {
     if (match(n)) return false;
     if (n.tag === 'fragment') {
       fragments.add(n);

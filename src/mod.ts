@@ -1,22 +1,26 @@
-import type {Node, Props, RenderOptions} from './types.ts';
-import {parseHTML} from './parse.ts';
-import {customTags} from './utils.ts';
+import type {Props, RenderOptions} from './types.ts';
+import {Node, parseHTML} from './parse.ts';
 import tagIf from './tag-if.ts';
 import tagFor from './tag-for.ts';
 import tagComponent from './tag-component.ts';
 import {evaluateText} from './evaluate.ts';
+import {customTags, encodeHash} from './utils.ts';
 
 export class Hypermore {
   localProps: Props;
   globalProps: Props;
-  portals: Map<string, Node>;
   #templates: Map<string, Node>;
+  /** Discovered portal names and comment placeholders */
+  #portals: Map<string, string>;
+  /** Extracted fragments and their target portals */
+  #fragments: Set<{html: string; portal: string}>;
 
   constructor(options: RenderOptions) {
-    this.localProps = {};
     this.globalProps = structuredClone(options.globalProps ?? {});
-    this.portals = new Map();
     this.#templates = new Map();
+    this.localProps = {};
+    this.#portals = new Map();
+    this.#fragments = new Set();
     options.templates?.forEach((html, name) => {
       this.setTemplate(name, html);
     });
@@ -39,14 +43,14 @@ export class Hypermore {
     const node = parseHTML(html, {
       rootTag: /^\w+$/.test(name) ? name : undefined
     });
-    this.parseNode(node);
     this.#templates.set(name, node);
   }
 
   /** Duplicate named template node */
-  cloneTemplate(name: string): Node | undefined {
+  async cloneTemplate(name: string): Promise<Node | undefined> {
     const template = this.#templates.get(name);
     if (template === undefined) return undefined;
+    await this.parseNode(template);
     return template.clone();
   }
 
@@ -56,13 +60,25 @@ export class Hypermore {
    * @param html Template string
    * @returns HTML string
    */
-  render(html: string): Promise<string> {
-    this.localProps = {};
-    this.portals = new Map();
+  async render(html: string): Promise<string> {
+    // Reset previous renders
+    this.#portals = new Map();
+    this.#fragments = new Set();
+    // Parse and validate template node
     const node = parseHTML(html);
-    // console.log(node);
-    this.parseNode(node);
-    return this.renderNode(node, {});
+    await this.parseNode(node);
+    // Render root template node
+    let render = await this.renderNode(node, {});
+    // Replace portals with extracted fragments
+    const fragments = [...this.#fragments.values()];
+    for (const [name, comment] of this.#portals) {
+      render = render.replace(comment, () =>
+        fragments
+          .map(({html, portal}) => (portal === name ? html : ''))
+          .join('')
+      );
+    }
+    return render;
   }
 
   /**
@@ -70,18 +86,19 @@ export class Hypermore {
    * - Invalid child nodes are removed
    * @param root Node to process
    */
-  parseNode(root: Node): void {
+  async parseNode(root: Node): Promise<void> {
     // Track nodes to remove after traversal
     const remove = new Set<Node>();
-    root.traverse((node) => {
+    await root.traverse(async (node) => {
       // Flag custom tags as invisible for render switch
       if (customTags.has(node.tag)) {
         node.type = 'INVISIBLE';
       }
       if (node.tag === 'fragment') {
         const slot = node.attributes.get('slot');
-        if (slot === undefined) {
-          console.warn(`<fragment> missing "slot" property`);
+        const portal = node.attributes.get('portal');
+        if (slot === undefined && portal === undefined) {
+          console.warn(`<fragment> missing "slot" or "portal" property`);
           remove.add(node);
         }
       }
@@ -91,7 +108,12 @@ export class Hypermore {
           console.warn(`<portal> missing "name" property`);
           remove.add(node);
         } else {
-          this.portals.set(name, node);
+          // Fragments may appear before or after this portal in the node tree
+          // A temporary comment is replaced later with extracted fragments
+          // Hash is used to avoid authored comment conflicts
+          const comment = `<!--${await encodeHash(name)}-->`;
+          node.append(new Node(node, 'COMMENT', comment));
+          this.#portals.set(name, comment);
         }
       }
       if (tagIf.match(node)) {
@@ -119,7 +141,7 @@ export class Hypermore {
     if (props) this.localProps = props;
     switch (node.type) {
       case 'COMMENT':
-        return '';
+        return node.raw;
       case 'OPAQUE':
         return node.raw;
       case 'ROOT':
@@ -149,8 +171,16 @@ export class Hypermore {
             return tagIf.render(node, this);
           case 'for':
             return tagFor.render(node, this);
-          case 'fragment':
-            throw new Error('<fragment> unknown');
+          case 'fragment': {
+            const portal = node.attributes.get('portal');
+            if (portal) {
+              const html = await this.renderChildren(node);
+              this.#fragments.add({html, portal});
+            } else {
+              console.warn(`'<fragment> unknown`);
+            }
+            return '';
+          }
           case 'slot':
             return this.renderChildren(node);
           case 'portal':

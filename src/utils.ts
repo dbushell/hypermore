@@ -31,3 +31,19 @@ export const componentName = (path: string | URL): string => {
   name = parts.join('');
   return name;
 };
+
+/** Return an encoded hash */
+export const encodeHash = async (
+  value: string,
+  algorithm?: AlgorithmIdentifier
+): Promise<string> => {
+  const buffer = new Uint8Array(
+    await crypto.subtle.digest(
+      algorithm ?? 'SHA-256',
+      new TextEncoder().encode(value)
+    )
+  );
+  return Array.from(buffer)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+};

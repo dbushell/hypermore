@@ -31,7 +31,6 @@ const captureWarn = () => {
 };
 
 const releaseWarn = () => {
-  // console.log('Warnings:', ...warnStack);
   console.warn = consoleWarn;
   warnStack = [];
 };
@@ -110,6 +109,37 @@ Deno.test('slots', async (test) => {
     const output = await hypermore.render(html);
     assertEquals(output, `<main>Start! Center! End!</main>`);
   });
+});
+
+Deno.test('portals', async (test) => {
+  captureWarn();
+  await test.step('missing name', async () => {
+    const html = `<portal />`;
+    const output = await hypermore.render(html);
+    assertEquals(output, ``);
+    assertEquals(warnStack.at(-1), ['<portal> missing "name" property']);
+  });
+  await test.step('fragment before', async () => {
+    const html = `<fragment portal="head">Before!</fragment><portal name="head" /> End!`;
+    const output = await hypermore.render(html);
+    assertEquals(output, `Before! End!`);
+  });
+  await test.step('fragment after', async () => {
+    const html = `<portal name="head" /> End!<fragment portal="head">After!</fragment>`;
+    const output = await hypermore.render(html);
+    assertEquals(output, `After! End!`);
+  });
+  await test.step('inner content', async () => {
+    const html = `<fragment portal="head">End!</fragment><portal name="head">Start! </portal>`;
+    const output = await hypermore.render(html);
+    assertEquals(output, `Start! End!`);
+  });
+  await test.step('missing name', async () => {
+    const html = `<fragment portal="missing">Missing!</fragment><portal name="head" /> End!`;
+    const output = await hypermore.render(html);
+    assertEquals(output, ` End!`);
+  });
+  releaseWarn();
 });
 
 Deno.test('<if> tag', async (test) => {
