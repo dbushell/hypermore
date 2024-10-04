@@ -46,8 +46,8 @@ export class Hypermore {
   }
 
   /**
-   * Set template by component name
-   * @param name Name must match [A-Z][\w:-]*
+   * Set template for a component
+   * @param name Custom element name
    * @param html HTML string
    */
   setTemplate(name: string, html: string): void {
@@ -71,7 +71,6 @@ export class Hypermore {
 
   /**
    * Render HTML from string template
-   * - Options from class constructor are used
    * @param html Template string
    * @returns HTML string
    */
