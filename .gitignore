@@ -1,5 +1,5 @@
 /*
-/*.*
+/**/*.*
 !.github
 !.gitignore
 !deno.json
@@ -11,3 +11,5 @@
 !src/**/*.ts
 !test
 !test/*.ts
+!docs
+!docs/*.md
