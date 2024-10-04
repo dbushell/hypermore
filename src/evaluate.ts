@@ -1,14 +1,35 @@
-import type {Hypermore, JSONArray, JSONValue} from './types.ts';
+import type {Hypermore, JSONArray, JSONValue, Node} from './types.ts';
 import {escape, escapeApostrophe} from './parse.ts';
 import {reservedProps} from './utils.ts';
+import tagComponent from './tag-component.ts';
+
+const isCustom = (node: Node) =>
+  node.type === 'INVISIBLE' && tagComponent.match(node.raw);
 
 /**
  * Evaluate JavaScript code
  * @param code JavaScript code
  * @returns Evaluated return value
  */
-export const evaluateCode = async <T = JSONValue>(code: string): Promise<T> => {
-  const module = Function(`'use strict'; return async function() {${code}}`)();
+export const evaluateCode = async <T = JSONValue>(
+  code: string,
+  context: Hypermore
+): Promise<T> => {
+  let detail = '';
+  const {currentNode: node} = context;
+  if (node) {
+    // Improve error message with expression and parent component
+    detail = ` in expression: "${escapeApostrophe(node.toString())}"'`;
+    const parent = isCustom(node) ? node : node.closest(isCustom);
+    if (parent) detail += ` in element: <${parent.raw}>`;
+  }
+  const module = Function(`'use strict'; return async function() {
+    try {
+      ${code}
+    } catch (err) {
+      throw new Error(\`"\${err.message}"${detail}\`);
+    }
+  }`)();
   return (await module()) as T;
 };
 
@@ -36,7 +57,7 @@ export const evaluateContext = <T = JSONValue>(
     value = escapeApostrophe(value);
     code += `const ${key} = JSON.parse('${value}');\n`;
   }
-  return evaluateCode(`${code}\n return (${expression})`);
+  return evaluateCode(`${code}\n return (${expression})`, context);
 };
 
 /**

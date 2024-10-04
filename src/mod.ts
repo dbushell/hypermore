@@ -16,6 +16,8 @@ export class Hypermore {
   #portals: Map<string, string>;
   /** Extracted fragments and their target portals */
   #fragments: Set<{html: string; portal: string}>;
+  /** currentNode being rendered */
+  #currentNode: Node | undefined;
 
   constructor(options: HypermoreOptions = {}) {
     this.autoEscape = true;
@@ -25,6 +27,10 @@ export class Hypermore {
     this.#portals = new Map();
     this.#fragments = new Set();
     if (options) this.setOptions(options);
+  }
+
+  get currentNode() {
+    return this.#currentNode;
   }
 
   /** Update options - unchanged values are not reset to default */
@@ -88,6 +94,7 @@ export class Hypermore {
     await this.parseNode(node);
     // Render root template node
     let render = await this.renderNode(node, props ?? {});
+    this.#currentNode = undefined;
     // Replace portals with extracted fragments
     const fragments = [...this.#fragments.values()];
     for (const [name, comment] of this.#portals) {
@@ -166,6 +173,7 @@ export class Hypermore {
    * @returns
    */
   async renderNode(node: Node, props?: Props): Promise<string> {
+    this.#currentNode = node;
     if (props) this.localProps = props;
     switch (node.type) {
       case 'COMMENT':

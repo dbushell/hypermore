@@ -37,4 +37,22 @@ Deno.test('props', async (test) => {
     const output = await hypermore.render(html);
     assertEquals(output, `<p>123abc</p>`);
   });
+  await test.step('missing error', async () => {
+    const html = `<p>{{ missing.join('') }}</p>`;
+    try {
+      await hypermore.render(html);
+    } catch (err) {
+      assertEquals(err.message.includes(`"missing is not defined"`), true);
+      assertEquals(err.message.includes(`{{ missing.join('') }}`), true);
+    }
+  });
+  await test.step('component missing prop', async () => {
+    const html = `<my-prop />`;
+    try {
+      await hypermore.render(html);
+    } catch (err) {
+      assertEquals(err.message.includes(`expression: "{{prop}}"`), true);
+      assertEquals(err.message.includes(`element: <my-prop>`), true);
+    }
+  });
 });

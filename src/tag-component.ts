@@ -28,6 +28,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
 
   const template = (await context.cloneTemplate(node.tag))!;
   template.type = 'INVISIBLE';
+  template.raw = node.tag;
 
   template.traverse((n) => {
     if (match(n)) return false;
