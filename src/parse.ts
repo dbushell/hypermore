@@ -11,7 +11,7 @@ import {
 
 export {escapeApostrophe, escape, unescape, inlineTags, Node};
 
-// Extend defaults with custom tags
+// Extend defaults with special tags
 const parseOptions = getParseOptions();
 parseOptions.voidTags.add('ssr-else');
 parseOptions.voidTags.add('ssr-elseif');

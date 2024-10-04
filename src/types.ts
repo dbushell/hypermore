@@ -22,6 +22,7 @@ export type Props = JSONObject;
 export type Deferred<T> = ReturnType<typeof Promise.withResolvers<T>>;
 
 export type HypermoreOptions = {
+  autoEscape?: boolean;
   globalProps?: Props;
   templates?: Map<string, string>;
 };

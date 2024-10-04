@@ -4,6 +4,7 @@ export const specialTags = new Set([
   'ssr-elseif',
   'ssr-fragment',
   'ssr-for',
+  'ssr-html',
   'ssr-if',
   'ssr-slot',
   'ssr-portal'
@@ -42,8 +43,10 @@ export const encodeHash = async (
     .join('');
 };
 
-// Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
-
+/**
+ * @std/text - https://jsr.io/@std/text
+ * Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
+ */
 const CAPITALIZED_WORD_REGEXP = /\p{Lu}\p{Ll}+/u;
 const ACRONYM_REGEXP = /\p{Lu}+(?=(\p{Lu}\p{Ll})|\P{L}|\b)/u;
 const LOWERCASED_WORD_REGEXP = /(\p{Ll}+)/u;

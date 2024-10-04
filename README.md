@@ -4,7 +4,7 @@ Experimental HTML preprocessor and template engine built with [Hyperless](https:
 
 ## Custom Elements and Components
 
-Custom element templates can be registered to behave like "components" or "includes" when rendered.
+Custom element templates can be registered to behave like component includes when rendered.
 
 For example we can register `my-component`:
 
@@ -23,7 +23,7 @@ This will render:
 <h1>Hello, World!</h1>
 ```
 
-If the template `my-component` is not registered any usage will rendered as-is like a standard HTML custom element:
+If the template `my-component` is not registered any usage is rendered as-is like a standard custom element:
 
 ```html
 <my-component heading="Hello, World!"/>

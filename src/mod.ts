@@ -2,11 +2,13 @@ import type {Props, HypermoreOptions} from './types.ts';
 import {Node, parseHTML} from './parse.ts';
 import tagIf from './tag-if.ts';
 import tagFor from './tag-for.ts';
+import tagHtml from './tag-html.ts';
 import tagComponent from './tag-component.ts';
 import {evaluateText} from './evaluate.ts';
 import {specialTags, encodeHash} from './utils.ts';
 
 export class Hypermore {
+  autoEscape: boolean;
   localProps: Props;
   globalProps: Props;
   #templates: Map<string, Node>;
@@ -16,11 +18,23 @@ export class Hypermore {
   #fragments: Set<{html: string; portal: string}>;
 
   constructor(options: HypermoreOptions = {}) {
-    this.globalProps = structuredClone(options.globalProps ?? {});
-    this.#templates = new Map();
+    this.autoEscape = true;
     this.localProps = {};
+    this.globalProps = {};
+    this.#templates = new Map();
     this.#portals = new Map();
     this.#fragments = new Set();
+    if (options) this.setOptions(options);
+  }
+
+  /** Update options - unchanged values are not reset to default */
+  setOptions(options: HypermoreOptions) {
+    if (typeof options.autoEscape === 'boolean') {
+      this.autoEscape = options.autoEscape;
+    }
+    if (options.globalProps) {
+      this.globalProps = structuredClone(options.globalProps);
+    }
     options.templates?.forEach((html, name) => {
       this.setTemplate(name, html);
     });
@@ -62,9 +76,7 @@ export class Hypermore {
    * @returns HTML string
    */
   async render(html: string, options?: HypermoreOptions): Promise<string> {
-    if (options?.globalProps) {
-      this.globalProps = structuredClone(options.globalProps);
-    }
+    if (options) this.setOptions(options);
     // Reset previous renders
     this.#portals = new Map();
     this.#fragments = new Set();
@@ -95,9 +107,13 @@ export class Hypermore {
     const remove = new Set<Node>();
     const work: Array<Promise<unknown>> = [];
     root.traverse((node) => {
-      // Flag custom tags as invisible for render switch
+      // Flag special tags as invisible for render switch
       if (specialTags.has(node.tag)) {
         node.type = 'INVISIBLE';
+      }
+      // Return false so inner special tags are rendered as elements
+      if (node.tag === 'ssr-html') {
+        return false;
       }
       if (node.tag === 'ssr-fragment') {
         const slot = node.attributes.get('slot');
@@ -180,6 +196,8 @@ export class Hypermore {
             return tagIf.render(node, this);
           case 'ssr-for':
             return tagFor.render(node, this);
+          case 'ssr-html':
+            return tagHtml.render(node, this);
           case 'ssr-fragment': {
             const portal = node.attributes.get('portal');
             if (portal) {

@@ -72,7 +72,7 @@ export const evaluateText = async (
       // Strip and append evaluation
       text = text.substring(match[0].length);
       const result = await evaluateContext(match[1], context);
-      out += escape(String(result));
+      out += context.autoEscape ? escape(String(result)) : result;
       results.push(result);
     }
   }

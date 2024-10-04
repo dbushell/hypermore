@@ -11,7 +11,13 @@ const validate = (node: Node, context: Hypermore): boolean =>
   context.hasTemplate(node.tag);
 
 const render = async (node: Node, context: Hypermore): Promise<string> => {
+  // Ignore custom elements with no template
   if (validate(node, context) === false) {
+    return context.renderParent(node);
+  }
+  // Ignore elements within <ssr-html> block
+  const parent = node.closest((n) => n.tag === 'ssr-html');
+  if (parent) {
     return context.renderParent(node);
   }
 
