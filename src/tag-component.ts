@@ -1,4 +1,4 @@
-import type {Node, Hypermore, HypermoreTag} from './types.ts';
+import type {Node, Hypermore, HypermoreTag, Props} from './types.ts';
 import {evaluateText} from './evaluate.ts';
 
 const tagName = 'Component';
@@ -54,7 +54,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
     }
   });
 
-  const props: Record<string, string> = {};
+  const props: Props = {};
 
   if (node.size && slots.has('default')) {
     node.children.forEach((n) => {
@@ -81,11 +81,10 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   // Setup component props and attributes
   for (const [key, value] of node.attributes) {
     const [newValue, vars] = await evaluateText(value, context);
-
     node.attributes.set(key, newValue);
     // Preserve type of singular expression
     const single = /^\s*{{.+}}\s*$/.test(value);
-    props[key] = JSON.stringify(single ? vars[0] : newValue);
+    props[key] = single ? vars[0] : newValue;
   }
 
   node.clear();

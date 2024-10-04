@@ -1,5 +1,6 @@
 import {
   type ParseOptions,
+  escapeApostrophe,
   escape,
   unescape,
   inlineTags,
@@ -8,7 +9,7 @@ import {
   parseHTML as originalParseHTML
 } from '@dbushell/hyperless';
 
-export {escape, unescape, inlineTags, Node};
+export {escapeApostrophe, escape, unescape, inlineTags, Node};
 
 // Extend defaults with custom tags
 const parseOptions = getParseOptions();

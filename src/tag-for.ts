@@ -1,4 +1,4 @@
-import type {HypermoreTag, Hypermore} from './types.ts';
+import type {HypermoreTag, Hypermore, Props, JSONValue} from './types.ts';
 import {evaluateContext} from './evaluate.ts';
 import {Node} from './parse.ts';
 import {isVariable} from './utils.ts';
@@ -35,7 +35,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
 
   // Parse "of" attribute
   const expression = node.attributes.get('of')!;
-  let items = await evaluateContext<unknown>(expression, context);
+  let items = await evaluateContext(expression, context);
 
   // Convert string to numeric value
   if (typeof items === 'string') {
@@ -60,12 +60,12 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
 
   let i = 0;
   let out = '';
-  for (const item of items as Iterable<unknown>) {
-    const props = {...context.localProps, [itemProp]: JSON.stringify(item)};
+  for (const item of items as Iterable<JSONValue>) {
+    const props = {...context.localProps, [itemProp]: item} as Props;
     const clone = template.clone();
     node.append(clone);
     for (const child of clone.children) {
-      if (indexProp) props[indexProp] = JSON.stringify(i);
+      if (indexProp) props[indexProp] = i;
       out += (await context.renderNode(child, props)) ?? '';
     }
     i++;

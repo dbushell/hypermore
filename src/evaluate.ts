@@ -1,5 +1,5 @@
-import type {Hypermore} from './types.ts';
-import {escape} from './parse.ts';
+import type {Hypermore, JSONArray, JSONValue} from './types.ts';
+import {escape, escapeApostrophe} from './parse.ts';
 import {reservedProps} from './utils.ts';
 
 /**
@@ -7,7 +7,7 @@ import {reservedProps} from './utils.ts';
  * @param code JavaScript code
  * @returns Evaluated return value
  */
-export const evaluateCode = async <T>(code: string): Promise<T> => {
+export const evaluateCode = async <T = JSONValue>(code: string): Promise<T> => {
   const module = Function(`'use strict'; return async function() {${code}}`)();
   return (await module()) as T;
 };
@@ -17,21 +17,23 @@ export const evaluateCode = async <T>(code: string): Promise<T> => {
  * @param expression JavaScript expression
  * @param context Render context
  * @returns Evaluated return value
- * @todo fix encode/decode of apostrophe in strings
  */
-export const evaluateContext = <T>(
+export const evaluateContext = <T = JSONValue>(
   expression: string,
   context: Hypermore
 ): Promise<T> => {
   // Add global props to scope
-  const globalProps = JSON.stringify(context.globalProps);
+  let globalProps = JSON.stringify(context.globalProps);
+  globalProps = escapeApostrophe(globalProps);
   let code = `const globalProps = JSON.parse('${globalProps}');\n`;
   // Add context props into scope
-  for (const [key, value] of Object.entries(context.localProps)) {
+  for (let [key, value] of Object.entries(context.localProps)) {
     if (reservedProps.has(key)) {
       console.warn(`invalid reserved prop name "${key}"`);
       continue;
     }
+    value = JSON.stringify(value);
+    value = escapeApostrophe(value);
     code += `const ${key} = JSON.parse('${value}');\n`;
   }
   return evaluateCode(`${code}\n return (${expression})`);
@@ -46,9 +48,9 @@ export const evaluateContext = <T>(
 export const evaluateText = async (
   text: string,
   context: Hypermore
-): Promise<[string, Array<unknown>]> => {
+): Promise<[string, JSONArray]> => {
   let out = '';
-  const results: Array<unknown> = [];
+  const results: JSONArray = [];
   while (text.length) {
     // Search for next expression
     const next = text.indexOf('{{');
