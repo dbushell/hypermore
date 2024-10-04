@@ -13,8 +13,8 @@ export {escapeApostrophe, escape, unescape, inlineTags, Node};
 
 // Extend defaults with custom tags
 const parseOptions = getParseOptions();
-parseOptions.voidTags.add('else');
-parseOptions.voidTags.add('elseif');
+parseOptions.voidTags.add('ssr-else');
+parseOptions.voidTags.add('ssr-elseif');
 
 // Wrap original with extended options
 export const parseHTML = (

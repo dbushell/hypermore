@@ -165,15 +165,15 @@ export class Hypermore {
         return this.renderParent(node);
       case 'INVISIBLE':
         switch (node.tag) {
-          case 'else':
-            console.warn(`<else> outside of <if>`);
+          case 'ssr-else':
+            console.warn(`<ssr-else> outside of <ssr-if>`);
             return '';
-          case 'elseif':
-            console.warn(`<elseif> outside of <if>`);
+          case 'ssr-elseif':
+            console.warn(`<ssr-elseif> outside of <ssr-if>`);
             return '';
-          case 'if':
+          case 'ssr-if':
             return tagIf.render(node, this);
-          case 'for':
+          case 'ssr-for':
             return tagFor.render(node, this);
           case 'ssr-fragment': {
             const portal = node.attributes.get('portal');

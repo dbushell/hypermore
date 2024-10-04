@@ -2,17 +2,17 @@ import type {HypermoreTag, Hypermore} from './types.ts';
 import {evaluateContext} from './evaluate.ts';
 import {Node} from './parse.ts';
 
-const tagName = 'if';
+const tagName = 'ssr-if';
 
 const match = (node: Node): boolean => node.tag === tagName;
 
 const validate = (node: Node): boolean => {
   if (node.size === 0) {
-    console.warn(`<if> with no statement`);
+    console.warn(`<ssr-if> with no statement`);
     return false;
   }
   if (node.attributes.has('condition') === false) {
-    console.warn(`<if> missing "condition" property`);
+    console.warn(`<ssr-if> missing "condition" property`);
     return false;
   }
   return true;
@@ -28,17 +28,17 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
 
   for (const child of [...node.children]) {
     child.detach();
-    if (child.tag === 'else') {
+    if (child.tag === 'ssr-else') {
       conditions.push({
         expression: 'true',
         statement: new Node(null, 'INVISIBLE')
       });
       continue;
     }
-    if (child.tag === 'elseif') {
+    if (child.tag === 'ssr-elseif') {
       const expression = child.attributes.get('condition');
       if (expression === undefined) {
-        console.warn(`<elseif> with invalid condition`);
+        console.warn(`<ssr-elseif> with invalid condition`);
         return '';
       }
       conditions.push({

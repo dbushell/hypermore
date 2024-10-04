@@ -1,10 +1,10 @@
 /** List of tags to never render */
 export const customTags = new Set([
-  'else',
-  'elseif',
+  'ssr-else',
+  'ssr-elseif',
   'ssr-fragment',
-  'for',
-  'if',
+  'ssr-for',
+  'ssr-if',
   'ssr-slot',
   'ssr-portal'
 ]);

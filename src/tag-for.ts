@@ -3,27 +3,27 @@ import {evaluateContext} from './evaluate.ts';
 import {Node} from './parse.ts';
 import {isVariable} from './utils.ts';
 
-const tagName = 'for';
+const tagName = 'ssr-for';
 
 const match = (node: Node): boolean => node.tag === tagName;
 
 const validate = (node: Node): boolean => {
   if (node.size === 0) {
-    console.warn(`<for> with no statement`);
+    console.warn(`<ssr-for> with no statement`);
     return false;
   }
   if (node.attributes.has('of') === false) {
-    console.warn(`<for> missing "of" property`);
+    console.warn(`<ssr-for> missing "of" property`);
     return false;
   }
   const itemProp = node.attributes.get('item');
   if (itemProp === undefined || isVariable(itemProp) === false) {
-    console.warn(`<for> invalid "item" property`);
+    console.warn(`<ssr-for> invalid "item" property`);
     return false;
   }
   const indexProp = node.attributes.get('index');
   if (indexProp && isVariable(indexProp) === false) {
-    console.warn(`<for> invalid "index" property`);
+    console.warn(`<ssr-for> invalid "index" property`);
     return false;
   }
   return true;
@@ -50,11 +50,11 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
 
   // @ts-ignore ensure items is iterable
   if (typeof items[Symbol.iterator] !== 'function') {
-    console.warn(`<for> invalid "of" property (not iterable)`);
+    console.warn(`<ssr-for> invalid "of" property (not iterable)`);
     return '';
   }
 
-  // Move <for> children into template
+  // Move <ssr-for> children into template
   const template = new Node(null, 'INVISIBLE');
   template.append(...node.children);
 
