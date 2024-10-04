@@ -98,18 +98,18 @@ export class Hypermore {
       if (customTags.has(node.tag)) {
         node.type = 'INVISIBLE';
       }
-      if (node.tag === 'fragment') {
+      if (node.tag === 'ssr-fragment') {
         const slot = node.attributes.get('slot');
         const portal = node.attributes.get('portal');
         if (slot === undefined && portal === undefined) {
-          console.warn(`<fragment> missing "slot" or "portal" property`);
+          console.warn(`<ssr-fragment> missing "slot" or "portal" property`);
           remove.add(node);
         }
       }
-      if (node.tag === 'portal') {
+      if (node.tag === 'ssr-portal') {
         const name = node.attributes.get('name');
         if (name === undefined) {
-          console.warn(`<portal> missing "name" property`);
+          console.warn(`<ssr-portal> missing "name" property`);
           remove.add(node);
         } else {
           // Fragments may appear before or after this portal in the node tree
@@ -175,19 +175,19 @@ export class Hypermore {
             return tagIf.render(node, this);
           case 'for':
             return tagFor.render(node, this);
-          case 'fragment': {
+          case 'ssr-fragment': {
             const portal = node.attributes.get('portal');
             if (portal) {
               const html = await this.renderChildren(node);
               this.#fragments.add({html, portal});
             } else {
-              console.warn(`'<fragment> unknown`);
+              console.warn(`<ssr-fragment> unknown`);
             }
             return '';
           }
-          case 'slot':
+          case 'ssr-slot':
             return this.renderChildren(node);
-          case 'portal':
+          case 'ssr-portal':
             return this.renderChildren(node);
         }
         return this.renderParent(node);

@@ -24,11 +24,11 @@ export const hypermore = new Hypermore({
 
 hypermore.setTemplate('Prop', `<p>{{prop}}</p>`);
 hypermore.setTemplate('Basic', `<main>Pass!</main>`);
-hypermore.setTemplate('VoidSlot', `<main><slot /></main>`);
-hypermore.setTemplate('FallbackSlot', `<main><slot>Fallack!</slot></main>`);
+hypermore.setTemplate('VoidSlot', `<main><ssr-slot /></main>`);
+hypermore.setTemplate('FallbackSlot', `<main><ssr-slot>Fallack!</slot></main>`);
 hypermore.setTemplate(
   'NamedSlot',
-  `<main><slot name="start">Unused!</slot><slot> Center! </slot><slot name="end" /></main>`
+  `<main><ssr-slot name="start">Unused!</slot><ssr-slot> Center! </slot><ssr-slot name="end" /></main>`
 );
 
 hypermore.setTemplate(

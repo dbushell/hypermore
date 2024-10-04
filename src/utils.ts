@@ -2,11 +2,11 @@
 export const customTags = new Set([
   'else',
   'elseif',
-  'fragment',
+  'ssr-fragment',
   'for',
   'if',
-  'slot',
-  'portal'
+  'ssr-slot',
+  'ssr-portal'
 ]);
 
 /** Reserved property names */

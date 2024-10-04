@@ -18,27 +18,27 @@ Deno.test('slots', async (test) => {
     assertEquals(output, `<div><main>Populated!</main></div>`);
   });
   await test.step('named slot (1)', async () => {
-    const html = `<NamedSlot><fragment slot="start">Start!</fragment></NamedSlot>`;
+    const html = `<NamedSlot><ssr-fragment slot="start">Start!</fragment></NamedSlot>`;
     const output = await hypermore.render(html);
     assertEquals(output, `<main>Start! Center! </main>`);
   });
   await test.step('named slot (2)', async () => {
-    const html = `<NamedSlot><fragment slot="start">Start!</fragment><fragment slot="end">End!</fragment></NamedSlot>`;
+    const html = `<NamedSlot><ssr-fragment slot="start">Start!</fragment><ssr-fragment slot="end">End!</fragment></NamedSlot>`;
     const output = await hypermore.render(html);
     assertEquals(output, `<main>Start! Center! End!</main>`);
   });
   await test.step('named slot + unused', async () => {
-    const html = `<NamedSlot><fragment slot="end">End!</fragment></NamedSlot>`;
+    const html = `<NamedSlot><ssr-fragment slot="end">End!</fragment></NamedSlot>`;
     const output = await hypermore.render(html);
     assertEquals(output, `<main>Unused! Center! End!</main>`);
   });
   await test.step('named slot + default', async () => {
-    const html = `<NamedSlot><fragment slot="start">Start!</fragment> Middle! <fragment slot="end">End!</fragment></NamedSlot>`;
+    const html = `<NamedSlot><ssr-fragment slot="start">Start!</fragment> Middle! <ssr-fragment slot="end">End!</fragment></NamedSlot>`;
     const output = await hypermore.render(html);
     assertEquals(output, `<main>Start! Middle! End!</main>`);
   });
   await test.step('named slot + props', async () => {
-    const html = `<NamedSlot start="Start!" end="End!"><fragment slot="start">{{start}}</fragment><fragment slot="end">{{end}}</fragment></NamedSlot>`;
+    const html = `<NamedSlot start="Start!" end="End!"><ssr-fragment slot="start">{{start}}</fragment><ssr-fragment slot="end">{{end}}</fragment></NamedSlot>`;
     const output = await hypermore.render(html);
     assertEquals(output, `<main>Start! Center! End!</main>`);
   });

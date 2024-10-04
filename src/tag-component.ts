@@ -37,7 +37,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
 
   await template.traverse((n) => {
     if (match(n)) return false;
-    if (n.tag === 'slot') {
+    if (n.tag === 'ssr-slot') {
       const name = n.attributes.get('name');
       slots.set(name ?? 'default', n);
     }
@@ -45,7 +45,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
 
   await node.traverse((n) => {
     if (match(n)) return false;
-    if (n.tag === 'fragment') {
+    if (n.tag === 'ssr-fragment') {
       fragments.add(n);
       const slot = n.attributes.get('slot')!;
       if (slot) {
@@ -58,7 +58,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
 
   if (node.size && slots.has('default')) {
     node.children.forEach((n) => {
-      if (n.tag === 'fragment') return;
+      if (n.tag === 'ssr-fragment') return;
       targets.set(n, 'default');
     });
   }
