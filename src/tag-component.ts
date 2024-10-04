@@ -48,8 +48,6 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
     }
   });
 
-  const props: Props = {};
-
   if (node.size && slots.has('default')) {
     node.children.forEach((n) => {
       if (n.tag === 'ssr-fragment') return;
@@ -73,6 +71,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   fragments.forEach((n) => n.detach());
 
   // Setup component props and attributes
+  const props: Props = {...context.localProps};
   for (const [key, value] of node.attributes) {
     const [newValue, vars] = await evaluateText(value, context);
     node.attributes.set(key, newValue);

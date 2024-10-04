@@ -75,7 +75,11 @@ export class Hypermore {
    * @param html Template string
    * @returns HTML string
    */
-  async render(html: string, options?: HypermoreOptions): Promise<string> {
+  async render(
+    html: string,
+    props?: Props,
+    options?: HypermoreOptions
+  ): Promise<string> {
     if (options) this.setOptions(options);
     // Reset previous renders
     this.#portals = new Map();
@@ -84,7 +88,7 @@ export class Hypermore {
     const node = parseHTML(html);
     await this.parseNode(node);
     // Render root template node
-    let render = await this.renderNode(node, {});
+    let render = await this.renderNode(node, props ?? {});
     // Replace portals with extracted fragments
     const fragments = [...this.#fragments.values()];
     for (const [name, comment] of this.#portals) {
