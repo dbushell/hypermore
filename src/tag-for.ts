@@ -5,7 +5,8 @@ import {isVariable} from './utils.ts';
 
 const tagName = 'ssr-for';
 
-const match = (node: Node): boolean => node.tag === tagName;
+const match = (node: string | Node): boolean =>
+  (typeof node === 'string' ? node : node.tag) === tagName;
 
 const validate = (node: Node): boolean => {
   if (node.size === 0) {

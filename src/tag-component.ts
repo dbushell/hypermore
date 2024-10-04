@@ -1,30 +1,18 @@
 import type {Node, Hypermore, HypermoreTag, Props} from './types.ts';
 import {evaluateText} from './evaluate.ts';
 
-const tagName = 'Component';
-
-const componentTypes = new Set(['ELEMENT', 'VOID']);
-
-const match = (node: Node): boolean =>
-  componentTypes.has(node.type) && /[A-Z][\w:-]*/.test(node.tagRaw);
-
-const validate = (node: Node, context: Hypermore): boolean => {
-  if (context.hasTemplate(node.tagRaw) === false) {
-    console.warn(`<${node.tagRaw}> missing template`);
-    return false;
-  }
-  /** @todo improve detection */
-  const parent = node.closest((n) => n.tagRaw === node.tag.toUpperCase());
-  if (parent) {
-    console.warn(`infinite nested loop <${node.tagRaw}>`);
-    return false;
-  }
-  return true;
+const match = (node: string | Node): boolean => {
+  const tagName = typeof node === 'string' ? node : node.tag;
+  if (tagName.startsWith('ssr-')) return false;
+  return /([a-z][\w]*-[\w]+)/.test(tagName);
 };
+
+const validate = (node: Node, context: Hypermore): boolean =>
+  context.hasTemplate(node.tag);
 
 const render = async (node: Node, context: Hypermore): Promise<string> => {
   if (validate(node, context) === false) {
-    return '';
+    return context.renderParent(node);
   }
 
   const slots = new Map<string, Node>();
@@ -32,10 +20,10 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   const fragments = new Set<Node>();
   const cleared = new Set<Node>();
 
-  const template = (await context.cloneTemplate(node.tagRaw))!;
+  const template = (await context.cloneTemplate(node.tag))!;
   template.type = 'INVISIBLE';
 
-  await template.traverse((n) => {
+  template.traverse((n) => {
     if (match(n)) return false;
     if (n.tag === 'ssr-slot') {
       const name = n.attributes.get('name');
@@ -43,7 +31,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
     }
   });
 
-  await node.traverse((n) => {
+  node.traverse((n) => {
     if (match(n)) return false;
     if (n.tag === 'ssr-fragment') {
       fragments.add(n);
@@ -90,11 +78,22 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   node.clear();
   node.replace(template);
 
+  // Avoid infinite loops
+  const nested = new Set<Node>();
+  template.traverse((n) => {
+    if (n.tag === 'ssr-if' || n.tag === 'ssr-for') return false;
+    if (n.tag === node.tag) nested.add(n);
+  });
+  if (nested.size) {
+    nested.forEach((n) => n.detach());
+    console.warn(`<${node.tag}> infinite nested loop`);
+  }
+
   return context.renderNode(template, props);
 };
 
 const HypermoreTag: HypermoreTag = {
-  tagName,
+  tagName: 'ssr-component',
   match,
   render,
   validate

@@ -22,17 +22,21 @@ export const hypermore = new Hypermore({
   globalProps
 });
 
-hypermore.setTemplate('Prop', `<p>{{prop}}</p>`);
-hypermore.setTemplate('Basic', `<main>Pass!</main>`);
-hypermore.setTemplate('VoidSlot', `<main><ssr-slot /></main>`);
-hypermore.setTemplate('FallbackSlot', `<main><ssr-slot>Fallack!</slot></main>`);
+hypermore.setTemplate('my-prop', `<p>{{prop}}</p>`);
+hypermore.setTemplate('my-basic', `<main>Pass!</main>`);
+hypermore.setTemplate('loop-slot', `<ssr-slot /><loop-slot />`);
+hypermore.setTemplate('void-slot', `<main><ssr-slot /></main>`);
 hypermore.setTemplate(
-  'NamedSlot',
+  'fallback-slot',
+  `<main><ssr-slot>Fallack!</slot></main>`
+);
+hypermore.setTemplate(
+  'named-slot',
   `<main><ssr-slot name="start">Unused!</slot><ssr-slot> Center! </slot><ssr-slot name="end" /></main>`
 );
 
 hypermore.setTemplate(
-  'Button',
+  'my-button',
   `<button type="{{type}}"><span>{{label}}</span></button>`
 );
 

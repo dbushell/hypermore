@@ -18,12 +18,12 @@ Deno.test('props', async (test) => {
     assertEquals(output, `<p>${globalProps.encodedEntities}</p>`);
   });
   await test.step('escape apostrophe (prop)', async () => {
-    const html = `<Prop prop="{{globalProps.escapeApostrophe}}" />`;
+    const html = `<my-prop prop="{{globalProps.escapeApostrophe}}" />`;
     const output = await hypermore.render(html);
     assertEquals(output, `<p>${globalProps.escapeApostropheEncoded}</p>`);
   });
   await test.step('encode entities (prop)', async () => {
-    const html = `<Prop prop="{{globalProps.entities}}" />`;
+    const html = `<my-prop prop="{{globalProps.entities}}" />`;
     const output = await hypermore.render(html);
     assertEquals(output, `<p>${globalProps.encodedEntities}</p>`);
   });

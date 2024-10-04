@@ -28,7 +28,7 @@ export type HypermoreOptions = {
 
 export type HypermoreTag = {
   tagName: string;
-  match: (node: Node) => boolean;
+  match: (node: string | Node) => boolean;
   validate: (node: Node, context: Hypermore) => boolean;
   render: (node: Node, context: Hypermore) => Promise<string>;
 };

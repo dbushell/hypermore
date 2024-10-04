@@ -4,7 +4,7 @@ import tagIf from './tag-if.ts';
 import tagFor from './tag-for.ts';
 import tagComponent from './tag-component.ts';
 import {evaluateText} from './evaluate.ts';
-import {customTags, encodeHash} from './utils.ts';
+import {specialTags, encodeHash} from './utils.ts';
 
 export class Hypermore {
   localProps: Props;
@@ -37,7 +37,7 @@ export class Hypermore {
    * @param html HTML string
    */
   setTemplate(name: string, html: string): void {
-    if (/[A-Z][\w:-]*/.test(name) === false) {
+    if (tagComponent.match(name) === false) {
       throw new Error(`invalid template name`);
     }
     const node = parseHTML(html, {
@@ -93,9 +93,10 @@ export class Hypermore {
   async parseNode(root: Node): Promise<void> {
     // Track nodes to remove after traversal
     const remove = new Set<Node>();
-    await root.traverse(async (node) => {
+    const work: Array<Promise<unknown>> = [];
+    root.traverse((node) => {
       // Flag custom tags as invisible for render switch
-      if (customTags.has(node.tag)) {
+      if (specialTags.has(node.tag)) {
         node.type = 'INVISIBLE';
       }
       if (node.tag === 'ssr-fragment') {
@@ -115,9 +116,12 @@ export class Hypermore {
           // Fragments may appear before or after this portal in the node tree
           // A temporary comment is replaced later with extracted fragments
           // Hash is used to avoid authored comment conflicts
-          const comment = `<!--${await encodeHash(name)}-->`;
-          node.append(new Node(node, 'COMMENT', comment));
-          this.#portals.set(name, comment);
+          const setPortal = async () => {
+            const comment = `<!--${await encodeHash(name)}-->`;
+            node.append(new Node(node, 'COMMENT', comment));
+            this.#portals.set(name, comment);
+          };
+          work.push(setPortal());
         }
       }
       if (tagIf.match(node)) {
@@ -133,6 +137,7 @@ export class Hypermore {
     });
     // Remove nodes that failed validation
     remove.forEach((node) => node.detach());
+    await Promise.all(work);
   }
 
   /**

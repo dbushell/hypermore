@@ -1,5 +1,5 @@
 /** List of tags to never render */
-export const customTags = new Set([
+export const specialTags = new Set([
   'ssr-else',
   'ssr-elseif',
   'ssr-fragment',
@@ -23,13 +23,7 @@ export const componentName = (path: string | URL): string => {
   name = name.split('/').at(-1) ?? name;
   name = name.split('.', 1)[0];
   name = name.replace(/[^\w:-]/g, '');
-  let parts = name.split('-');
-  parts = parts.map(
-    (part) =>
-      part.charAt(0).toLocaleUpperCase() + part.slice(1).toLocaleLowerCase()
-  );
-  name = parts.join('');
-  return name;
+  return toKebabCase(name);
 };
 
 /** Return an encoded hash */
@@ -47,3 +41,25 @@ export const encodeHash = async (
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 };
+
+// Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
+
+const CAPITALIZED_WORD_REGEXP = /\p{Lu}\p{Ll}+/u;
+const ACRONYM_REGEXP = /\p{Lu}+(?=(\p{Lu}\p{Ll})|\P{L}|\b)/u;
+const LOWERCASED_WORD_REGEXP = /(\p{Ll}+)/u;
+const ANY_LETTERS = /\p{L}+/u;
+const DIGITS_REGEXP = /\p{N}+/u;
+
+const WORD_OR_NUMBER_REGEXP = new RegExp(
+  `${CAPITALIZED_WORD_REGEXP.source}|${ACRONYM_REGEXP.source}|${LOWERCASED_WORD_REGEXP.source}|${ANY_LETTERS.source}|${DIGITS_REGEXP.source}`,
+  'gu'
+);
+
+export function splitToWords(input: string) {
+  return input.match(WORD_OR_NUMBER_REGEXP) ?? [];
+}
+
+export function toKebabCase(input: string): string {
+  input = input.trim();
+  return splitToWords(input).join('-').toLocaleLowerCase();
+}
