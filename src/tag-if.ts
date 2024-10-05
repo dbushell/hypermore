@@ -20,13 +20,15 @@ const validate = (node: Node): boolean => {
 };
 
 const render = async (node: Node, context: Hypermore): Promise<string> => {
+  // First <ssr-if> condition
   const expression = node.attributes.get('condition')!;
 
-  // Separate child nodes by secondary conditions
-  const conditions: Array<{expression: string; statement: Node}> = [
-    {expression, statement: new Node(null, 'INVISIBLE')}
-  ];
+  // List of conditions to check in order
+  const conditions = [{expression, statement: new Node(null, 'INVISIBLE')}];
 
+  // Iterate over <ssr-if> child nodes
+  // <ssr-else> and <ssr-elseif> are added as new conditions
+  // All other nodes are appended to the last condition
   for (const child of [...node.children]) {
     child.detach();
     if (child.tag === 'ssr-else') {
@@ -37,10 +39,10 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
       continue;
     }
     if (child.tag === 'ssr-elseif') {
-      const expression = child.attributes.get('condition');
+      let expression = child.attributes.get('condition');
       if (expression === undefined) {
         console.warn(`<ssr-elseif> with invalid condition`);
-        return '';
+        expression = 'false';
       }
       conditions.push({
         expression,
@@ -52,16 +54,16 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
     conditions.at(-1)?.statement.append(child);
   }
 
-  node.detach();
-
-  // Output first matching condition
+  // Render first matching condition
   for (const {expression, statement} of conditions) {
     const result = await evaluateContext(expression, context);
-    if (result) {
-      node.replace(statement);
-      return context.renderChildren(statement);
-    }
+    if (Boolean(result) === false) continue;
+    node.replace(statement);
+    return context.renderChildren(statement);
   }
+
+  // No matches
+  node.detach();
   return '';
 };
 
