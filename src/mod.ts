@@ -5,7 +5,7 @@ import tagFor from './tag-for.ts';
 import tagHtml from './tag-html.ts';
 import tagComponent from './tag-component.ts';
 import {evaluateText} from './evaluate.ts';
-import {specialTags, encodeHash} from './utils.ts';
+import {specialTags} from './utils.ts';
 
 export class Hypermore {
   autoEscape: boolean;
@@ -76,12 +76,12 @@ export class Hypermore {
   }
 
   /** Duplicate named template node */
-  async cloneTemplate(name: string): Promise<Node | undefined> {
+  cloneTemplate(name: string): Node | undefined {
     const template = this.#templates.get(name);
     if (template === undefined) return undefined;
     const node = template.clone();
     this.#components.add(node);
-    await this.parseNode(node);
+    this.parseNode(node);
     return node;
   }
 
@@ -101,7 +101,7 @@ export class Hypermore {
     this.#fragments = new Set();
     // Parse and validate template node
     const node = parseHTML(html);
-    await this.parseNode(node);
+    this.parseNode(node);
     // Render root template node
     let render = await this.renderNode(node, props ?? {});
     this.#node = undefined;
@@ -122,10 +122,9 @@ export class Hypermore {
    * - Invalid child nodes are removed
    * @param root Node to process
    */
-  async parseNode(root: Node): Promise<void> {
+  parseNode(root: Node): void {
     // Track nodes to remove after traversal
     const remove = new Set<Node>();
-    const work: Array<Promise<unknown>> = [];
     root.traverse((node) => {
       // Flag special tags as invisible for render switch
       if (specialTags.has(node.tag)) {
@@ -151,13 +150,10 @@ export class Hypermore {
         } else {
           // Fragments may appear before or after this portal in the node tree
           // A temporary comment is replaced later with extracted fragments
-          // Hash is used to avoid authored comment conflicts
-          const setPortal = async () => {
-            const comment = `<!--${await encodeHash(name)}-->`;
-            node.append(new Node(node, 'COMMENT', comment));
-            this.#portals.set(name, comment);
-          };
-          work.push(setPortal());
+          // Random UUID is used to avoid authored comment conflicts
+          const comment = `<!--${crypto.randomUUID()}-->`;
+          node.append(new Node(node, 'COMMENT', comment));
+          this.#portals.set(name, comment);
         }
       }
       if (tagIf.match(node)) {
@@ -173,7 +169,6 @@ export class Hypermore {
     });
     // Remove nodes that failed validation
     remove.forEach((node) => node.detach());
-    await Promise.all(work);
   }
 
   /**

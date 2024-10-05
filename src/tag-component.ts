@@ -29,7 +29,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   const fragments = new Set<Node>();
   const cleared = new Set<Node>();
 
-  const template = (await context.cloneTemplate(node.tag))!;
+  const template = context.cloneTemplate(node.tag)!;
   template.type = 'INVISIBLE';
   template.raw = node.tag;
 
