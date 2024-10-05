@@ -11,13 +11,16 @@ export class Hypermore {
   autoEscape: boolean;
   localProps: Props;
   globalProps: Props;
+  /** Reference to current or last node rendered */
+  #node: Node | undefined;
+  /** Cache of cloned template nodes */
+  #components: WeakSet<Node>;
+  /** Map of template name and parsed nodes */
   #templates: Map<string, Node>;
   /** Discovered portal names and comment placeholders */
   #portals: Map<string, string>;
   /** Extracted fragments and their target portals */
   #fragments: Set<{html: string; portal: string}>;
-  /** currentNode being rendered */
-  #currentNode: Node | undefined;
 
   constructor(options: HypermoreOptions = {}) {
     this.autoEscape = true;
@@ -26,11 +29,12 @@ export class Hypermore {
     this.#templates = new Map();
     this.#portals = new Map();
     this.#fragments = new Set();
+    this.#components = new WeakSet();
     if (options) this.setOptions(options);
   }
 
   get currentNode() {
-    return this.#currentNode;
+    return this.#node;
   }
 
   /** Update options - unchanged values are not reset to default */
@@ -44,6 +48,11 @@ export class Hypermore {
     options.templates?.forEach((html, name) => {
       this.setTemplate(name, html);
     });
+  }
+
+  /** Returns `true` if node is a cloned template */
+  hasComponent(node: Node): boolean {
+    return this.#components.has(node);
   }
 
   /** Returns `true` if named template exists */
@@ -71,6 +80,7 @@ export class Hypermore {
     const template = this.#templates.get(name);
     if (template === undefined) return undefined;
     const node = template.clone();
+    this.#components.add(node);
     await this.parseNode(node);
     return node;
   }
@@ -94,7 +104,7 @@ export class Hypermore {
     await this.parseNode(node);
     // Render root template node
     let render = await this.renderNode(node, props ?? {});
-    this.#currentNode = undefined;
+    this.#node = undefined;
     // Replace portals with extracted fragments
     const fragments = [...this.#fragments.values()];
     for (const [name, comment] of this.#portals) {
@@ -173,7 +183,7 @@ export class Hypermore {
    * @returns
    */
   async renderNode(node: Node, props?: Props): Promise<string> {
-    this.#currentNode = node;
+    this.#node = node;
     if (props) this.localProps = props;
     switch (node.type) {
       case 'COMMENT':

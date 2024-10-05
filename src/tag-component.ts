@@ -3,12 +3,15 @@ import {evaluateText} from './evaluate.ts';
 
 const match = (node: string | Node): boolean => {
   const tagName = typeof node === 'string' ? node : node.tag;
+  // Disallow reserved prefix
   if (tagName.startsWith('ssr-')) return false;
+  // Match custom element naming pattern
   return /([a-z][\w]*-[\w]+)/.test(tagName);
 };
 
+// Already cloned, or template exists for tag name
 const validate = (node: Node, context: Hypermore): boolean =>
-  context.hasTemplate(node.tag);
+  context.hasComponent(node) || context.hasTemplate(node.tag);
 
 const render = async (node: Node, context: Hypermore): Promise<string> => {
   // Ignore custom elements with no template

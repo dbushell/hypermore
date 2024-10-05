@@ -28,8 +28,12 @@ export type HypermoreOptions = {
 };
 
 export type HypermoreTag = {
+  /** Custom tag name */
   tagName: string;
+  /** Node tag matches the custom tag name */
   match: (node: string | Node) => boolean;
+  /** Node is a valid instance of the custom tag */
   validate: (node: Node, context: Hypermore) => boolean;
+  /** Node to HTML string */
   render: (node: Node, context: Hypermore) => Promise<string>;
 };
