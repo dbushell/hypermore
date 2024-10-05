@@ -59,9 +59,9 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   const template = new Node(null, 'INVISIBLE');
   template.append(...node.children);
 
-  let i = 0;
+  // Render each item with individual props
   let out = '';
-  for (const item of items as Iterable<JSONValue>) {
+  for (const [i, item] of [...(items as Iterable<JSONValue>)].entries()) {
     const props = {...context.localProps, [itemProp]: item} as Props;
     const clone = template.clone();
     node.append(clone);
@@ -69,7 +69,6 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
       if (indexProp) props[indexProp] = i;
       out += (await context.renderNode(child, props)) ?? '';
     }
-    i++;
   }
   return out;
 };
