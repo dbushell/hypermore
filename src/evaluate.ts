@@ -47,7 +47,11 @@ export const evaluateContext = <T = JSONValue>(
   globalProps = escapeApostrophe(globalProps);
   let code = `const globalProps = JSON.parse('${globalProps}');\n`;
   // Add context props into scope
-  for (let [key, value] of Object.entries(context.localProps)) {
+  const props = {
+    ...context.globalProps,
+    ...context.localProps
+  };
+  for (let [key, value] of Object.entries(props)) {
     if (reservedProps.has(key)) {
       console.warn(`invalid reserved prop name "${key}"`);
       continue;

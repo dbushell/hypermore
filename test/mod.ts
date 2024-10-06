@@ -22,7 +22,7 @@ export const hypermore = new Hypermore({
   globalProps
 });
 
-hypermore.setTemplate('my-prop', `<p>{{prop}}</p>`);
+hypermore.setTemplate('my-prop', `<p>{{number}}</p>`);
 hypermore.setTemplate('my-basic', `<main>Pass!</main>`);
 hypermore.setTemplate('loop-slot', `<ssr-slot /><loop-slot />`);
 hypermore.setTemplate('void-slot', `<main><ssr-slot /></main>`);

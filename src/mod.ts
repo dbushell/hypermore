@@ -1,11 +1,11 @@
 import type {Props, HypermoreOptions} from './types.ts';
 import {Node, parseHTML} from './parse.ts';
+import {evaluateText} from './evaluate.ts';
+import {specialTags} from './utils.ts';
 import tagIf from './tag-if.ts';
 import tagFor from './tag-for.ts';
 import tagHtml from './tag-html.ts';
 import tagComponent from './tag-component.ts';
-import {evaluateText} from './evaluate.ts';
-import {specialTags} from './utils.ts';
 
 export class Hypermore {
   autoEscape: boolean;

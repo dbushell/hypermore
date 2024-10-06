@@ -11,5 +11,5 @@
   "lint": {
     "include": ["**/*.ts"]
   },
-  "imports": {"@dbushell/hyperless": "jsr:@dbushell/hyperless@^0.16.0"}
+  "imports": {"@dbushell/hyperless": "jsr:@dbushell/hyperless@^0.17.0"}
 }

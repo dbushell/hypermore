@@ -18,12 +18,12 @@ Deno.test('props', async (test) => {
     assertEquals(output, `<p>${globalProps.encodedEntities}</p>`);
   });
   await test.step('escape apostrophe (prop)', async () => {
-    const html = `<my-prop prop="{{globalProps.escapeApostrophe}}" />`;
+    const html = `<my-prop number="{{globalProps.escapeApostrophe}}" />`;
     const output = await hypermore.render(html);
     assertEquals(output, `<p>${globalProps.escapeApostropheEncoded}</p>`);
   });
   await test.step('encode entities (prop)', async () => {
-    const html = `<my-prop prop="{{globalProps.entities}}" />`;
+    const html = `<my-prop number="{{globalProps.entities}}" />`;
     const output = await hypermore.render(html);
     assertEquals(output, `<p>${globalProps.encodedEntities}</p>`);
   });
@@ -54,5 +54,20 @@ Deno.test('props', async (test) => {
       assertEquals(err.message.includes(`expression: "{{prop}}"`), true);
       assertEquals(err.message.includes(`element: <my-prop>`), true);
     }
+  });
+  await test.step('global as local prop', async () => {
+    const html = `<p>{{number}}</p>`;
+    const output = await hypermore.render(html);
+    assertEquals(output, `<p>${globalProps.number}</p>`);
+  });
+  await test.step('override global', async () => {
+    const html = `<p>{{number}}</p>`;
+    const output = await hypermore.render(html, {number: 777});
+    assertEquals(output, `<p>777</p>`);
+  });
+  await test.step('override global attribute', async () => {
+    const html = `{{number}} <my-prop number="777" />`;
+    const output = await hypermore.render(html);
+    assertEquals(output, `42 <p>777</p>`);
   });
 });
