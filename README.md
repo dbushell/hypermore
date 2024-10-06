@@ -7,8 +7,7 @@ Experimental HTML preprocessor and template engine built with [Hyperless](https:
 ## Documentation
 
 * [Custom Elements](docs/custom-elements.md)
-* [Variables and Expressions](docs/variables-and-expressions.md)
-* Data and Props
+* [Variables, Expressions, and Props](docs/variables-expressions-props.md)
 * Slots, Fragments, and Portals
 * If Conditions
 * For Loops

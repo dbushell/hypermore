@@ -1,4 +1,4 @@
-# Variables and Expressions
+# Variables, Expressions, and Props
 
 HTML text nodes are parsed for variables, or JavaScript expressions, between `{{` and `}}`. We can print the `heading` variable in uppercase:
 
