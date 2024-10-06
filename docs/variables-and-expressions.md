@@ -10,7 +10,9 @@ await new Hypermore().render(
 );
 ```
 
-HTML attributes are also parsed and prop values are evaluated:
+## Local Props
+
+HTML attributes are also parsed and evaluated. Attributes are used as local props for component templates:
 
 ```javascript
 const hypermore = new Hypermore();
@@ -34,3 +36,20 @@ await hypermore.render(`
 ```
 
 This will output `string` and `number`.
+
+## Global Props
+
+Global props can be configured. They are destructured into every template, unless overwritten by a local prop. They are always available under the `globalProps` object.
+
+```javascript
+const hypermore = new Hypermore({
+  globalProps: { number: 42 }
+});
+hypermore.setTemplate('my-component', '{{number}}');
+// "42"
+await hypermore.render(`<my-component />`);
+// "777"
+await hypermore.render(`<my-component number="777" />`);
+// "42"
+await hypermore.render(`<my-component number="{{globalProps.number}}" />`);
+```
