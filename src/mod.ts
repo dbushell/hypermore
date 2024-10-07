@@ -5,6 +5,7 @@ import {specialTags} from './utils.ts';
 import tagIf from './tag-if.ts';
 import tagFor from './tag-for.ts';
 import tagHtml from './tag-html.ts';
+import tagScript from './tag-script.ts';
 import tagComponent from './tag-component.ts';
 
 export class Hypermore {
@@ -131,8 +132,22 @@ export class Hypermore {
         node.type = 'INVISIBLE';
       }
       // Return false so inner special tags are rendered as elements
-      if (node.tag === 'ssr-html') {
+      if (tagHtml.match(node)) {
         return false;
+      }
+      if (tagScript.match(node)) {
+        tagScript.validate(node, this);
+        remove.add(node);
+      }
+      if (tagIf.match(node)) {
+        if (tagIf.validate(node, this) === false) {
+          remove.add(node);
+        }
+      }
+      if (tagFor.match(node)) {
+        if (tagFor.validate(node, this) === false) {
+          remove.add(node);
+        }
       }
       if (node.tag === 'ssr-fragment') {
         const slot = node.attributes.get('slot');
@@ -154,16 +169,6 @@ export class Hypermore {
           const comment = `<!--${crypto.randomUUID()}-->`;
           node.append(new Node(node, 'COMMENT', comment));
           this.#portals.set(name, comment);
-        }
-      }
-      if (tagIf.match(node)) {
-        if (tagIf.validate(node, this) === false) {
-          remove.add(node);
-        }
-      }
-      if (tagFor.match(node)) {
-        if (tagFor.validate(node, this) === false) {
-          remove.add(node);
         }
       }
     });

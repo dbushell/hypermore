@@ -101,11 +101,11 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   return context.renderNode(template, props);
 };
 
-const HypermoreTag: HypermoreTag = {
+const Tag: HypermoreTag = {
   tagName: 'ssr-component',
   match,
   render,
   validate
 };
 
-export default HypermoreTag;
+export default Tag;

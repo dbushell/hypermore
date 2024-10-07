@@ -15,6 +15,7 @@ export {escapeApostrophe, escape, unescape, inlineTags, Node};
 const parseOptions = getParseOptions();
 parseOptions.voidTags.add('ssr-else');
 parseOptions.voidTags.add('ssr-elseif');
+parseOptions.opaqueTags.add('ssr-script');
 
 // Wrap original with extended options
 export const parseHTML = (

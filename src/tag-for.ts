@@ -73,11 +73,11 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   return out;
 };
 
-const HypermoreTag: HypermoreTag = {
+const Tag: HypermoreTag = {
   tagName,
   match,
   render,
   validate
 };
 
-export default HypermoreTag;
+export default Tag;
