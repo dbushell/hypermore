@@ -17,16 +17,17 @@ export interface JSONObject {
   [key: string]: JSONValue;
 }
 
+/** Local and global props type */
 export type Props = JSONObject;
 
-export type Deferred<T> = ReturnType<typeof Promise.withResolvers<T>>;
-
+/** Hypermore class configuration */
 export type HypermoreOptions = {
   autoEscape?: boolean;
   globalProps?: Props;
   templates?: Map<string, string>;
 };
 
+/** Hypermore HTML tag extension */
 export type HypermoreTag = {
   /** Custom tag name */
   tagName: string;

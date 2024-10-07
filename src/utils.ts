@@ -18,7 +18,7 @@ export const isVariable = (name: string): boolean => {
   return /^[a-zA-Z_$]\w*$/.test(name);
 };
 
-/** Return conventional component name from path */
+/** Return custom element name from path */
 export const componentName = (path: string | URL): string => {
   let name = path.toString();
   name = name.split('/').at(-1) ?? name;

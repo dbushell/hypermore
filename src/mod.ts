@@ -8,6 +8,7 @@ import tagHtml from './tag-html.ts';
 import tagScript from './tag-script.ts';
 import tagComponent from './tag-component.ts';
 
+/** Hypermore class */
 export class Hypermore {
   autoEscape: boolean;
   localProps: Props;

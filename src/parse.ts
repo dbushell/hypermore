@@ -17,7 +17,7 @@ parseOptions.voidTags.add('ssr-else');
 parseOptions.voidTags.add('ssr-elseif');
 parseOptions.opaqueTags.add('ssr-script');
 
-// Wrap original with extended options
+/** Parse HTML text into Node tree */
 export const parseHTML = (
   html: string,
   options?: Partial<ParseOptions>
