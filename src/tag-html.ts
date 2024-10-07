@@ -1,4 +1,4 @@
-import type {HypermoreTag, Hypermore, Node} from './types.ts';
+import type {Hypermore, HypermoreTag, Node} from './types.ts';
 
 const tagName = 'ssr-html';
 

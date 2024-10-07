@@ -1,0 +1,25 @@
+{
+  "name": "@dbushell/hypermore",
+  "version": "0.3.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dbushell/hypermore.git"
+  },
+  "description": "Experimental HTML preprocessor and template engine.",
+  "keywords": [
+    "html",
+    "typescript"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./mod.ts"
+  },
+  "files": [
+    "src",
+    "mod.ts",
+    "package.json",
+    "LICENSE",
+    "README.md"
+  ]
+}

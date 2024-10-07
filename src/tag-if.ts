@@ -1,4 +1,4 @@
-import type {HypermoreTag, Hypermore} from './types.ts';
+import type {Hypermore, HypermoreTag} from './types.ts';
 import {evaluateContext} from './evaluate.ts';
 import {Node} from './parse.ts';
 

@@ -3,9 +3,9 @@ import {
   escapeApostrophe,
   escape,
   unescape,
+  getParseOptions,
   inlineTags,
   Node,
-  getParseOptions,
   parseHTML as originalParseHTML
 } from '@dbushell/hyperless';
 

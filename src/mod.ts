@@ -1,4 +1,4 @@
-import type {Props, HypermoreOptions} from './types.ts';
+import type {HypermoreOptions, Props} from './types.ts';
 import {Node, parseHTML} from './parse.ts';
 import {evaluateText} from './evaluate.ts';
 import {specialTags} from './utils.ts';
@@ -12,7 +12,7 @@ export class Hypermore {
   autoEscape: boolean;
   localProps: Props;
   globalProps: Props;
-  /** Reference to current or last node rendered */
+  /** Reference to current node rendering */
   #node: Node | undefined;
   /** Cache of cloned template nodes */
   #components: WeakSet<Node>;
@@ -34,12 +34,12 @@ export class Hypermore {
     if (options) this.setOptions(options);
   }
 
-  get currentNode() {
+  get currentNode(): Node | undefined {
     return this.#node;
   }
 
-  /** Update options - unchanged values are not reset to default */
-  setOptions(options: HypermoreOptions) {
+  /** Update options */
+  setOptions(options: HypermoreOptions): void {
     if (typeof options.autoEscape === 'boolean') {
       this.autoEscape = options.autoEscape;
     }
@@ -62,7 +62,7 @@ export class Hypermore {
   }
 
   /**
-   * Set template for a component
+   * Set named template by HTML
    * @param name Custom element name
    * @param html HTML string
    */
@@ -119,9 +119,8 @@ export class Hypermore {
   }
 
   /**
-   * Perform validation and cleanup before render
-   * - Invalid child nodes are removed
-   * @param root Node to process
+   * Validate tree and remove invalid child nodes
+   * @param root Node
    */
   parseNode(root: Node): void {
     // Track nodes to remove after traversal
@@ -177,10 +176,10 @@ export class Hypermore {
   }
 
   /**
-   * Render Node to string
-   * @param node Node to render
-   * @param props Local component props
-   * @returns
+   * Render Node to HTML
+   * @param node Node
+   * @param props Local props
+   * @returns HTML string
    */
   async renderNode(node: Node, props?: Props): Promise<string> {
     this.#node = node;
@@ -246,7 +245,7 @@ export class Hypermore {
   }
 
   /**
-   * Render children of Node specified
+   * Render children of Node to HTML
    * @param node Node
    * @returns HTML string
    */
@@ -259,7 +258,7 @@ export class Hypermore {
   }
 
   /**
-   * Render Node as HTML element
+   * Render parent Node to HTML
    * @param node Node
    * @returns HTML string
    */

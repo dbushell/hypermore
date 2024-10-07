@@ -1,4 +1,4 @@
-import type {Node, Hypermore, HypermoreTag, Props} from './types.ts';
+import type {Hypermore, HypermoreTag, Node, Props} from './types.ts';
 import {evaluateText} from './evaluate.ts';
 
 const match = (node: string | Node): boolean => {

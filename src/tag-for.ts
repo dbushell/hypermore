@@ -1,4 +1,4 @@
-import type {HypermoreTag, Hypermore, Props, JSONValue} from './types.ts';
+import type {Hypermore, HypermoreTag, JSONValue, Props} from './types.ts';
 import {evaluateContext} from './evaluate.ts';
 import {Node} from './parse.ts';
 import {isVariable} from './utils.ts';
