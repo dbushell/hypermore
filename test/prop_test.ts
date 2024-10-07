@@ -1,5 +1,5 @@
 import {assertEquals} from 'jsr:@std/assert';
-import {hypermore, globalProps} from './mod.ts';
+import {hypermore, globalProps, warn} from './mod.ts';
 
 Deno.test('props', async (test) => {
   await test.step('interpolation', async () => {
@@ -77,4 +77,17 @@ Deno.test('props', async (test) => {
     });
     assertEquals(output, `42 <p>777</p> 42`);
   });
+  await test.step('camel case conversion', async () => {
+    const html = `<single-slot camel-case="Pass!">{{ camelCase }}</single-slot>`;
+    const output = await hypermore.render(html);
+    assertEquals(output, `Pass!`);
+  });
+  warn.capture();
+  await test.step('reserved prop name', async () => {
+    const html = `<single-slot global-props="Fail!">{{ globalProps }}</single-slot>`;
+    const output = await hypermore.render(html);
+    assertEquals(output, `[object Object]`);
+    assertEquals(warn.stack.pop(), ['invalid prop "globalProps" is reserved']);
+  });
+  warn.release();
 });

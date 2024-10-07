@@ -24,6 +24,7 @@ export const hypermore = new Hypermore({
 
 hypermore.setTemplate('my-prop', `<p>{{number}}</p>`);
 hypermore.setTemplate('my-basic', `<main>Pass!</main>`);
+hypermore.setTemplate('single-slot', `<ssr-slot />`);
 hypermore.setTemplate('loop-slot', `<ssr-slot /><loop-slot />`);
 hypermore.setTemplate('void-slot', `<main><ssr-slot /></main>`);
 hypermore.setTemplate(

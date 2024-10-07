@@ -1,6 +1,6 @@
 import type {Hypermore, JSONArray, JSONValue} from './types.ts';
 import {escape, escapeApostrophe} from './parse.ts';
-import {reservedProps} from './utils.ts';
+import {reservedProps, toCamelCase} from './utils.ts';
 import tagComponent from './tag-component.ts';
 
 /**
@@ -52,8 +52,9 @@ export const evaluateContext = <T = JSONValue>(
     ...context.localProps
   };
   for (let [key, value] of Object.entries(props)) {
+    key = toCamelCase(key);
     if (reservedProps.has(key)) {
-      console.warn(`invalid reserved prop name "${key}"`);
+      console.warn(`invalid prop "${key}" is reserved`);
       continue;
     }
     value = JSON.stringify(value);

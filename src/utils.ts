@@ -46,7 +46,19 @@ export function splitToWords(input: string) {
   return input.match(WORD_OR_NUMBER_REGEXP) ?? [];
 }
 
+export function capitalizeWord(word: string): string {
+  return word
+    ? word?.[0]?.toLocaleUpperCase() + word.slice(1).toLocaleLowerCase()
+    : word;
+}
+
 export function toKebabCase(input: string): string {
   input = input.trim();
   return splitToWords(input).join('-').toLocaleLowerCase();
+}
+
+export function toCamelCase(input: string): string {
+  input = input.trim();
+  const [first = '', ...rest] = splitToWords(input);
+  return [first.toLocaleLowerCase(), ...rest.map(capitalizeWord)].join('');
 }

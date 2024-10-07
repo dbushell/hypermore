@@ -29,13 +29,14 @@ Component props passed as attributes are string type by default. Evaluated types
 ```javascript
 const hypermore = new Hypermore();
 hypermore.setTemplate('my-type', '{{typeof prop}}');
+// "\n  string\n  number\n"
 await hypermore.render(`
   <my-type prop="42"/>
   <my-type prop="{{42}}"/>
 `);
 ```
 
-This will output `string` and `number`.
+Attributes are converted to [camel case](https://en.wikipedia.org/wiki/Camel_case) so `my-prop` becomes `{{ myProp }}` for example.
 
 ## Global Props
 
