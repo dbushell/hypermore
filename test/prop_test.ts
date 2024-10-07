@@ -70,4 +70,11 @@ Deno.test('props', async (test) => {
     const output = await hypermore.render(html);
     assertEquals(output, `42 <p>777</p>`);
   });
+  await test.step('local prop reset', async () => {
+    const html = `{{number}} <my-prop number="777" /> {{number}}`;
+    const output = await hypermore.render(html, {
+      number: 42
+    });
+    assertEquals(output, `42 <p>777</p> 42`);
+  });
 });

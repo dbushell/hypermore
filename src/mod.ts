@@ -179,41 +179,48 @@ export class Hypermore {
    */
   async renderNode(node: Node, props?: Props): Promise<string> {
     this.#node = node;
+    // Remember previous props
+    const cacheProps = this.localProps;
     if (props) this.localProps = props;
+    // Wrap return value so previous props can be reset
+    const out = (value = ''): string | Promise<string> => {
+      this.localProps = cacheProps;
+      return value;
+    };
     switch (node.type) {
       case 'COMMENT':
-        return node.raw;
+        return out(node.raw);
       case 'OPAQUE':
-        return node.raw;
+        return out(node.raw);
       case 'ROOT':
-        return this.renderChildren(node);
+        return out(await this.renderChildren(node));
       case 'STRAY':
         console.warn(`stray closing tag "${node.tag}"`);
-        return '';
+        return out();
       case 'TEXT': {
         const [text] = await evaluateText(node.raw, this);
-        return text;
+        return out(text);
       }
       case 'ELEMENT':
       case 'VOID':
         if (tagComponent.match(node)) {
-          return tagComponent.render(node, this);
+          return out(await tagComponent.render(node, this));
         }
-        return this.renderParent(node);
+        return out(await this.renderParent(node));
       case 'INVISIBLE':
         switch (node.tag) {
           case 'ssr-else':
             console.warn(`<ssr-else> outside of <ssr-if>`);
-            return '';
+            return out();
           case 'ssr-elseif':
             console.warn(`<ssr-elseif> outside of <ssr-if>`);
-            return '';
+            return out();
           case 'ssr-if':
-            return tagIf.render(node, this);
+            return out(await tagIf.render(node, this));
           case 'ssr-for':
-            return tagFor.render(node, this);
+            return out(await tagFor.render(node, this));
           case 'ssr-html':
-            return tagHtml.render(node, this);
+            return out(await tagHtml.render(node, this));
           case 'ssr-fragment': {
             const portal = node.attributes.get('portal');
             if (portal) {
@@ -222,14 +229,14 @@ export class Hypermore {
             } else {
               console.warn(`<ssr-fragment> unknown`);
             }
-            return '';
+            return out();
           }
           case 'ssr-slot':
-            return this.renderChildren(node);
+            return out(await this.renderChildren(node));
           case 'ssr-portal':
-            return this.renderChildren(node);
+            return out(await this.renderChildren(node));
         }
-        return this.renderParent(node);
+        return out(await this.renderParent(node));
     }
   }
 
@@ -258,9 +265,9 @@ export class Hypermore {
       node.attributes.set(key, newValue);
     }
     // Render children between
-    let out = node.tagOpen ?? '';
+    let out = node.tagOpen;
     out += await this.renderChildren(node);
-    out += node.tagClose ?? '';
+    out += node.tagClose;
     return out;
   }
 }
