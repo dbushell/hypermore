@@ -6,6 +6,7 @@ import tagIf from './tag-if.ts';
 import tagFor from './tag-for.ts';
 import tagHtml from './tag-html.ts';
 import tagScript from './tag-script.ts';
+import tagElement from './tag-element.ts';
 import tagComponent from './tag-component.ts';
 
 /** Hypermore class */
@@ -133,11 +134,19 @@ export class Hypermore {
       }
       // Return false so inner special tags are rendered as elements
       if (tagHtml.match(node)) {
+        if (tagHtml.validate(node, this) === false) {
+          remove.add(node);
+        }
         return false;
       }
       if (tagScript.match(node)) {
         tagScript.validate(node, this);
         remove.add(node);
+      }
+      if (tagElement.match(node)) {
+        if (tagElement.validate(node, this) === false) {
+          remove.add(node);
+        }
       }
       if (tagIf.match(node)) {
         if (tagIf.validate(node, this) === false) {
@@ -226,6 +235,8 @@ export class Hypermore {
             return out(await tagFor.render(node, this));
           case 'ssr-html':
             return out(await tagHtml.render(node, this));
+          case 'ssr-element':
+            return out(await tagElement.render(node, this));
           case 'ssr-fragment': {
             const portal = node.attributes.get('portal');
             if (portal) {

@@ -2,6 +2,7 @@
 export const specialTags = new Set([
   'ssr-else',
   'ssr-elseif',
+  'ssr-element',
   'ssr-fragment',
   'ssr-for',
   'ssr-html',

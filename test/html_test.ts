@@ -1,5 +1,5 @@
 import {assertEquals} from 'jsr:@std/assert';
-import {hypermore, globalProps} from './mod.ts';
+import {hypermore, globalProps, warn} from './mod.ts';
 
 Deno.test('<ssr-html> tag', async (test) => {
   await test.step('unescaped variable', async () => {
@@ -28,4 +28,12 @@ Deno.test('<ssr-html> tag', async (test) => {
       `<ssr-fragment portal="head">${globalProps.entities}</ssr-fragment>`
     );
   });
+  warn.capture();
+  await test.step('empty html', async () => {
+    const html = `<ssr-html />`;
+    const output = await hypermore.render(html);
+    assertEquals(output, '');
+    assertEquals(warn.stack.pop(), ['<ssr-html> with no content']);
+  });
+  warn.release();
 });

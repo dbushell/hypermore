@@ -1,24 +1,25 @@
 import type {Hypermore, HypermoreTag, Node} from './types.ts';
 
-const tagName = 'ssr-html';
+const tagName = 'ssr-element';
 
 const match = (node: string | Node): boolean =>
   (typeof node === 'string' ? node : node.tag) === tagName;
 
 const validate = (node: Node): boolean => {
-  if (node.size === 0) {
-    console.warn(`<ssr-html> with no content`);
+  if (node.attributes.has('tag') === false) {
+    console.warn(`<ssr-element> missing "tag" property`);
     return false;
   }
   return true;
 };
 
 const render = async (node: Node, context: Hypermore): Promise<string> => {
-  // Disable auto escape and re-renable to previous state later
-  const autoEscape = context.autoEscape;
-  context.autoEscape = false;
-  const out = await context.renderChildren(node);
-  context.autoEscape = autoEscape;
+  const tag = node.attributes.get('tag')!;
+  let attributes = node.attributes.toString();
+  attributes = attributes.replace(/\s*tag="[^"]+"\s*/, ' ');
+  let out = `<${(tag + attributes).trim()}>`;
+  out += await context.renderChildren(node);
+  out += `</${tag}>`;
   return out;
 };
 
