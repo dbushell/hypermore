@@ -20,4 +20,9 @@ Deno.test('<ssr-element> tag', async (test) => {
     const output = await hypermore.render(html);
     assertEquals(output, '<h1 id="pass" data-test c="2">Pass!</h1>');
   });
+  await test.step('attribute expression', async () => {
+    const html = `<ssr-element tag="{{tag}}">Pass!</element>`;
+    const output = await hypermore.render(html);
+    assertEquals(output, '<h1>Pass!</h1>');
+  });
 });

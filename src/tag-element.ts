@@ -1,4 +1,5 @@
 import type {Hypermore, HypermoreTag, Node} from './types.ts';
+import {evaluateText} from './evaluate.ts';
 
 const tagName = 'ssr-element';
 
@@ -14,7 +15,8 @@ const validate = (node: Node): boolean => {
 };
 
 const render = async (node: Node, context: Hypermore): Promise<string> => {
-  const tag = node.attributes.get('tag')!;
+  let tag = node.attributes.get('tag')!;
+  [tag] = await evaluateText(tag, context);
   let attributes = node.attributes.toString();
   attributes = attributes.replace(/\s*tag="[^"]+"\s*/, ' ');
   let out = `<${(tag + attributes).trim()}>`;
