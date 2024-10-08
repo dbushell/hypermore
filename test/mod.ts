@@ -56,6 +56,23 @@ return {
 {{date}}
 `
 );
+hypermore.setTemplate(
+  'my-default',
+  `<ssr-script context="component">
+return {
+  defaultProps: {
+    heading: 'Heading',
+    description: 'Fail!',
+    end: 'Fail!'
+  },
+  localProps: {
+    description: 'Description'
+  }
+};
+</ssr-script>
+{{heading}} {{description}} {{end}}
+`
+);
 
 const consoleWarn = console.warn;
 

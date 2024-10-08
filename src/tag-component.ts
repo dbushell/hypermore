@@ -75,7 +75,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   fragments.forEach((n) => n.detach());
 
   // Setup component props and attributes
-  const props: Props = {...context.localProps};
+  let props: Props = {...context.localProps};
   for (const [key, value] of node.attributes) {
     const [newValue, vars] = await evaluateText(value, context);
     node.attributes.set(key, newValue);
@@ -99,12 +99,20 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
     code = code.replace(/^\s*<script([^>]*>)/, '');
     code = code.replace(/<\/script>\s*/, '');
     const mod = await evaluateContext<{
-      localProps: Props;
+      defaultProps?: Props;
+      localProps?: Props;
     }>(code, context, props, false);
+    if (typeof mod.defaultProps === 'object') {
+      props = {
+        ...mod.defaultProps,
+        ...props
+      };
+    }
     if (typeof mod.localProps === 'object') {
-      for (const [key, value] of Object.entries(mod.localProps)) {
-        props[key] = value;
-      }
+      props = {
+        ...props,
+        ...mod.localProps
+      };
     }
   }
 
