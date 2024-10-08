@@ -207,7 +207,7 @@ export class Hypermore {
       case 'COMMENT':
         return out(node.raw);
       case 'OPAQUE':
-        return out(node.raw);
+        return out(node.toString());
       case 'ROOT':
         return out(await this.renderChildren(node));
       case 'STRAY':
