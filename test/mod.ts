@@ -35,10 +35,25 @@ hypermore.setTemplate(
   'named-slot',
   `<main><ssr-slot name="start">Unused!</slot><ssr-slot> Center! </slot><ssr-slot name="end" /></main>`
 );
-
 hypermore.setTemplate(
   'my-button',
   `<button type="{{type}}"><span>{{label}}</span></button>`
+);
+hypermore.setTemplate(
+  'my-time',
+  `<ssr-script context="component">
+const newDate = new Date(date);
+const year = newDate.getFullYear().toString();
+const month = newDate.toLocaleString('en-GB', {month: 'long'});
+const day = newDate.toLocaleString('en-GB', {weekday: 'long'});
+return {
+  localProps: {
+    date: \`\${year}, \${month}, \${day}\`
+  }
+};
+</ssr-script>
+{{date}}
+`
 );
 
 const consoleWarn = console.warn;

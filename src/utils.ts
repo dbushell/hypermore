@@ -8,7 +8,8 @@ export const specialTags = new Set([
   'ssr-html',
   'ssr-if',
   'ssr-slot',
-  'ssr-portal'
+  'ssr-portal',
+  'ssr-script'
 ]);
 
 /** Reserved property names */

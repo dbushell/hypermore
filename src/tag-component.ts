@@ -1,5 +1,5 @@
 import type {Hypermore, HypermoreTag, Node, Props} from './types.ts';
-import {evaluateText} from './evaluate.ts';
+import {evaluateContext, evaluateText} from './evaluate.ts';
 
 const match = (node: string | Node): boolean => {
   const tagName = typeof node === 'string' ? node : node.tag;
@@ -86,6 +86,27 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
 
   node.clear();
   node.replace(template);
+
+  // Find component script that can return props
+  const script = template.find((n) => {
+    return (
+      n.tag === 'ssr-script' && n.attributes.get('context') === 'component'
+    );
+  });
+  if (script) {
+    script.detach();
+    let code = script.at(0)!.raw;
+    code = code.replace(/^\s*<script([^>]*>)/, '');
+    code = code.replace(/<\/script>\s*/, '');
+    const mod = await evaluateContext<{
+      localProps: Props;
+    }>(code, context, props, false);
+    if (typeof mod.localProps === 'object') {
+      for (const [key, value] of Object.entries(mod.localProps)) {
+        props[key] = value;
+      }
+    }
+  }
 
   // Avoid infinite loops
   const nested = new Set<Node>();

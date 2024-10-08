@@ -141,7 +141,9 @@ export class Hypermore {
       }
       if (tagScript.match(node)) {
         tagScript.validate(node, this);
-        remove.add(node);
+        if (node.attributes.get('context') !== 'component') {
+          remove.add(node);
+        }
       }
       if (tagElement.match(node)) {
         if (tagElement.validate(node, this) === false) {
@@ -223,6 +225,9 @@ export class Hypermore {
         return out(await this.renderParent(node));
       case 'INVISIBLE':
         switch (node.tag) {
+          case 'ssr-script':
+            console.log(`<ssr-script> unknown`);
+            return out();
           case 'ssr-else':
             console.warn(`<ssr-else> outside of <ssr-if>`);
             return out();

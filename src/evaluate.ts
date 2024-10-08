@@ -1,4 +1,4 @@
-import type {Hypermore, JSONArray, JSONValue} from './types.ts';
+import type {Hypermore, JSONArray, JSONValue, Props} from './types.ts';
 import {escape, escapeApostrophe} from './parse.ts';
 import {reservedProps, toCamelCase} from './utils.ts';
 import tagComponent from './tag-component.ts';
@@ -40,7 +40,9 @@ export const evaluateCode = async <T = JSONValue>(
  */
 export const evaluateContext = <T = JSONValue>(
   expression: string,
-  context: Hypermore
+  context: Hypermore,
+  otherProps?: Props,
+  wrapReturn = true
 ): Promise<T> => {
   // Add global props to scope
   let globalProps = JSON.stringify(context.globalProps);
@@ -49,7 +51,8 @@ export const evaluateContext = <T = JSONValue>(
   // Add context props into scope
   const props = {
     ...context.globalProps,
-    ...context.localProps
+    ...context.localProps,
+    ...otherProps
   };
   for (let [key, value] of Object.entries(props)) {
     key = toCamelCase(key);
@@ -61,7 +64,12 @@ export const evaluateContext = <T = JSONValue>(
     value = escapeApostrophe(value);
     code += `const ${key} = JSON.parse('${value}');\n`;
   }
-  return evaluateCode(`${code}\n return (${expression})`, context);
+  if (wrapReturn) {
+    code = `${code}\n return (${expression})`;
+  } else {
+    code = `${code}\n ${expression}`;
+  }
+  return evaluateCode(code, context);
 };
 
 /**
