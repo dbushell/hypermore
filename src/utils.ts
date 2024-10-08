@@ -1,3 +1,6 @@
+import type {JSONValue} from './types.ts';
+import {escapeChar} from './parse.ts';
+
 /** List of tags to never render */
 export const specialTags = new Set([
   'ssr-else',
@@ -27,6 +30,26 @@ export const componentName = (path: string | URL): string => {
   name = name.split('.', 1)[0];
   name = name.replace(/[^\w:-]/g, '');
   return toKebabCase(name);
+};
+
+/** Encode value for JavaScript string output */
+export const encodeValue = (value: JSONValue): string => {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) {
+    return `[${value.map((v) => encodeValue(v)).join(',')}]`;
+  }
+  switch (typeof value) {
+    case 'boolean':
+    case 'number':
+      return `${value}`;
+    case 'string':
+      return `\`${escapeChar(value, '`')}\``;
+    case 'object': {
+      return `{${Object.entries(value)
+        .map(([k, v]) => `'${k}':${encodeValue(v)}`)
+        .join(',')}}`;
+    }
+  }
 };
 
 /**

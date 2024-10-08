@@ -1,6 +1,6 @@
 import type {Hypermore, JSONArray, JSONValue, Props} from './types.ts';
-import {escape, escapeApostrophe} from './parse.ts';
-import {reservedProps, toCamelCase} from './utils.ts';
+import {escape, escapeChar} from './parse.ts';
+import {encodeValue, reservedProps, toCamelCase} from './utils.ts';
 import tagComponent from './tag-component.ts';
 
 /**
@@ -16,7 +16,7 @@ export const evaluateCode = async <T = JSONValue>(
   const {currentNode: node} = context;
   if (node) {
     // Improve error message with expression and parent component
-    detail = ` in expression: "${escapeApostrophe(node.toString())}"'`;
+    detail = ` in expression: "${escapeChar(node.toString(), '`')}"'`;
     const parent = tagComponent.validate(node, context)
       ? node
       : node.closest((n) => tagComponent.validate(n, context));
@@ -45,9 +45,8 @@ export const evaluateContext = <T = JSONValue>(
   wrapReturn = true
 ): Promise<T> => {
   // Add global props to scope
-  let globalProps = JSON.stringify(context.globalProps);
-  globalProps = escapeApostrophe(globalProps);
-  let code = `const globalProps = JSON.parse('${globalProps}');\n`;
+  let code = `const globalProps = ${encodeValue(context.globalProps)};\n`;
+
   // Add context props into scope
   const props = {
     ...context.globalProps,
@@ -60,9 +59,7 @@ export const evaluateContext = <T = JSONValue>(
       console.warn(`invalid prop "${key}" is reserved`);
       continue;
     }
-    value = JSON.stringify(value);
-    value = escapeApostrophe(value);
-    code += `const ${key} = JSON.parse('${value}');\n`;
+    code += `const ${key} = ${encodeValue(value)};\n`;
   }
   if (wrapReturn) {
     code = `${code}\n return (${expression})`;

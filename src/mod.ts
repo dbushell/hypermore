@@ -226,7 +226,7 @@ export class Hypermore {
       case 'INVISIBLE':
         switch (node.tag) {
           case 'ssr-script':
-            console.log(`<ssr-script> unknown`);
+            console.warn(`<ssr-script> unknown`);
             return out();
           case 'ssr-else':
             console.warn(`<ssr-else> outside of <ssr-if>`);
