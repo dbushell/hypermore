@@ -1,6 +1,6 @@
 import type {Hypermore, JSONArray, JSONValue, Props} from './types.ts';
-import {escape, escapeChar} from './parse.ts';
-import {encodeValue, reservedProps, toCamelCase} from './utils.ts';
+import {escape} from './parse.ts';
+import {encodeValue, escapeChars, reservedProps, toCamelCase} from './utils.ts';
 import tagComponent from './tag-component.ts';
 
 /**
@@ -16,7 +16,7 @@ export const evaluateCode = async <T = JSONValue>(
   const {currentNode: node} = context;
   if (node) {
     // Improve error message with expression and parent component
-    detail = ` in expression: "${escapeChar(node.toString(), '`')}"'`;
+    detail = ` in expression: "${escapeChars(node.toString())}"'`;
     const parent = tagComponent.validate(node, context)
       ? node
       : node.closest((n) => tagComponent.validate(n, context));

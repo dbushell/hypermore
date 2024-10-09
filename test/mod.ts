@@ -23,6 +23,7 @@ export const hypermore = new Hypermore({
   globalProps
 });
 
+hypermore.setTemplate('my-html', `<ssr-html>{{html}}</ssr-html>`);
 hypermore.setTemplate('my-prop', `<p>{{number}}</p>`);
 hypermore.setTemplate('my-basic', `<main>Pass!</main>`);
 hypermore.setTemplate('single-slot', `<ssr-slot />`);

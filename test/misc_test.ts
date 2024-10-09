@@ -31,4 +31,25 @@ Deno.exit(1);
     const output = await hypermore.render(html);
     assertEquals(output, html);
   });
+  await test.step('escape grave text', async () => {
+    const html = `{{html}}`;
+    const output = await hypermore.render(html, {
+      html: 'console.log(`1`,`2`,${a});'
+    });
+    assertEquals(output, 'console.log(`1`,`2`,${a});');
+  });
+  await test.step('escape grave script', async () => {
+    const html = `<ssr-html>{{html}}</ssr-html>`;
+    const output = await hypermore.render(html, {
+      html: '<script>console.log(`1`,`2`,${a});</script>'
+    });
+    assertEquals(output, '<script>console.log(`1`,`2`,${a});</script>');
+  });
+  await test.step('escape grave prop', async () => {
+    const html = `<my-html html="{{html}}" />`;
+    const output = await hypermore.render(html, {
+      html: '<script>console.log(`1`,`2`,${a});</script>'
+    });
+    assertEquals(output, '<script>console.log(`1`,`2`,${a});</script>');
+  });
 });
