@@ -207,7 +207,7 @@ export class Hypermore {
       case 'COMMENT':
         return out(node.raw);
       case 'OPAQUE':
-        return out(node.toString());
+        return out(await this.renderParent(node));
       case 'ROOT':
         return out(await this.renderChildren(node));
       case 'STRAY':
@@ -284,6 +284,9 @@ export class Hypermore {
     for (const [key, value] of node.attributes) {
       const [newValue] = await evaluateText(value, this);
       node.attributes.set(key, newValue);
+    }
+    if (node.type === 'OPAQUE') {
+      return node.toString();
     }
     // Render children between
     let out = node.tagOpen;

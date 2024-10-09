@@ -26,6 +26,11 @@ Deno.exit(1);
     const output = await hypermore.render(html);
     assertEquals(output, html);
   });
+  await test.step('opaque tag attributes', async () => {
+    const html = `<script data-test="{{'Pass!'}}"></script>`;
+    const output = await hypermore.render(html);
+    assertEquals(output, `<script data-test="Pass!"></script>`);
+  });
   await test.step('html comment', async () => {
     const html = `<!-- comment -->`;
     const output = await hypermore.render(html);
