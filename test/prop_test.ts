@@ -90,4 +90,23 @@ Deno.test('props', async (test) => {
     assertEquals(warn.stack.pop(), ['invalid prop "globalProps" is reserved']);
   });
   warn.release();
+  await test.step('props propagation', async () => {
+    const output = await hypermore.render(
+      `<single-slot><h1>{{heading}}</h1></single-slot>`,
+      {
+        heading: 'Pass!'
+      }
+    );
+    assertEquals(output, `<h1>Pass!</h1>`);
+  });
+  await test.step('props propagation', async () => {
+    hypermore.setTemplate('my-h2', `<h2>{{heading}}</h2>`);
+    const output = await hypermore.render(
+      `<single-slot><h1>{{heading}}</h1><my-h2 /></single-slot>`,
+      {
+        heading: 'Pass!'
+      }
+    );
+    assertEquals(output, `<h1>Pass!</h1><h2>Pass!</h2>`);
+  });
 });
