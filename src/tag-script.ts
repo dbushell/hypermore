@@ -1,4 +1,4 @@
-import type {HypermoreTag, Node} from './types.ts';
+import type {HyperTag, Node} from './types.ts';
 
 const tagName = 'ssr-script';
 
@@ -15,7 +15,7 @@ const validate = (node: Node): boolean => {
 
 const render = () => Promise.resolve('');
 
-const Tag: HypermoreTag = {
+const Tag: HyperTag = {
   tagName,
   match,
   render,

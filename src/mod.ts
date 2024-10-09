@@ -1,4 +1,4 @@
-import type {HypermoreOptions, Props} from './types.ts';
+import type {Environment, Options, Props} from './types.ts';
 import {Node, parseHTML} from './parse.ts';
 import {evaluateText} from './evaluate.ts';
 import {specialTags} from './utils.ts';
@@ -12,36 +12,22 @@ import tagComponent from './tag-component.ts';
 /** Hypermore class */
 export class Hypermore {
   autoEscape: boolean;
-  localProps: Props;
   globalProps: Props;
-  /** Reference to current node rendering */
-  #node: Node | undefined;
   /** Cache of cloned template nodes */
   #components: WeakSet<Node>;
   /** Map of template name and parsed nodes */
   #templates: Map<string, Node>;
-  /** Discovered portal names and comment placeholders */
-  #portals: Map<string, string>;
-  /** Extracted fragments and their target portals */
-  #fragments: Set<{html: string; portal: string}>;
 
-  constructor(options: HypermoreOptions = {}) {
+  constructor(options: Options = {}) {
     this.autoEscape = true;
-    this.localProps = {};
     this.globalProps = {};
     this.#templates = new Map();
-    this.#portals = new Map();
-    this.#fragments = new Set();
     this.#components = new WeakSet();
     if (options) this.setOptions(options);
   }
 
-  get currentNode(): Node | undefined {
-    return this.#node;
-  }
-
   /** Update options */
-  setOptions(options: HypermoreOptions): void {
+  setOptions(options: Options): void {
     if (typeof options.autoEscape === 'boolean') {
       this.autoEscape = options.autoEscape;
     }
@@ -79,12 +65,12 @@ export class Hypermore {
   }
 
   /** Duplicate named template node */
-  cloneTemplate(name: string): Node | undefined {
+  cloneTemplate(name: string, env: Environment): Node | undefined {
     const template = this.#templates.get(name);
     if (template === undefined) return undefined;
     const node = template.clone();
     this.#components.add(node);
-    this.parseNode(node);
+    this.parseNode(node, env);
     return node;
   }
 
@@ -96,21 +82,25 @@ export class Hypermore {
   async render(
     html: string,
     props?: Props,
-    options?: HypermoreOptions
+    options?: Options
   ): Promise<string> {
     if (options) this.setOptions(options);
-    // Reset previous renders
-    this.#portals = new Map();
-    this.#fragments = new Set();
+    // Create new render env
+    const env: Environment = {
+      ctx: this,
+      localProps: [{}],
+      node: undefined,
+      portals: new Map(),
+      fragments: new Set()
+    };
     // Parse and validate template node
     const node = parseHTML(html);
-    this.parseNode(node);
+    this.parseNode(node, env);
     // Render root template node
-    let render = await this.renderNode(node, props ?? {});
-    this.#node = undefined;
+    let render = await this.renderNode(node, env, props);
     // Replace portals with extracted fragments
-    const fragments = [...this.#fragments.values()];
-    for (const [name, comment] of this.#portals) {
+    const fragments = [...env.fragments.values()];
+    for (const [name, comment] of env.portals) {
       render = render.replace(comment, () =>
         fragments
           .map(({html, portal}) => (portal === name ? html : ''))
@@ -124,7 +114,7 @@ export class Hypermore {
    * Validate tree and remove invalid child nodes
    * @param root Node
    */
-  parseNode(root: Node): void {
+  parseNode(root: Node, env: Environment): void {
     // Track nodes to remove after traversal
     const remove = new Set<Node>();
     root.traverse((node) => {
@@ -134,29 +124,29 @@ export class Hypermore {
       }
       // Return false so inner special tags are rendered as elements
       if (tagHtml.match(node)) {
-        if (tagHtml.validate(node, this) === false) {
+        if (tagHtml.validate(node, env) === false) {
           remove.add(node);
         }
         return false;
       }
       if (tagScript.match(node)) {
-        tagScript.validate(node, this);
+        tagScript.validate(node, env);
         if (node.attributes.get('context') !== 'component') {
           remove.add(node);
         }
       }
       if (tagElement.match(node)) {
-        if (tagElement.validate(node, this) === false) {
+        if (tagElement.validate(node, env) === false) {
           remove.add(node);
         }
       }
       if (tagIf.match(node)) {
-        if (tagIf.validate(node, this) === false) {
+        if (tagIf.validate(node, env) === false) {
           remove.add(node);
         }
       }
       if (tagFor.match(node)) {
-        if (tagFor.validate(node, this) === false) {
+        if (tagFor.validate(node, env) === false) {
           remove.add(node);
         }
       }
@@ -179,7 +169,7 @@ export class Hypermore {
           // Random UUID is used to avoid authored comment conflicts
           const comment = `<!--${crypto.randomUUID()}-->`;
           node.append(new Node(node, 'COMMENT', comment));
-          this.#portals.set(name, comment);
+          env.portals.set(name, comment);
         }
       }
     });
@@ -193,36 +183,39 @@ export class Hypermore {
    * @param props Local props
    * @returns HTML string
    */
-  async renderNode(node: Node, props?: Props): Promise<string> {
-    this.#node = node;
-    // Remember previous props
-    const cacheProps = this.localProps;
-    if (props) this.localProps = props;
-    // Wrap return value so previous props can be reset
+  async renderNode(
+    node: Node,
+    env: Environment,
+    props?: Props
+  ): Promise<string> {
+    env.node = node;
+    // Stack new props
+    if (props) env.localProps.push(props);
+    // Wrap return to unstack new props
     const out = (value = ''): string | Promise<string> => {
-      this.localProps = cacheProps;
+      if (props) env.localProps.pop();
       return value;
     };
     switch (node.type) {
       case 'COMMENT':
         return out(node.raw);
       case 'OPAQUE':
-        return out(await this.renderParent(node));
+        return out(await this.renderParent(node, env));
       case 'ROOT':
-        return out(await this.renderChildren(node));
+        return out(await this.renderChildren(node, env));
       case 'STRAY':
         console.warn(`stray closing tag "${node.tag}"`);
         return out();
       case 'TEXT': {
-        const [text] = await evaluateText(node.raw, this);
+        const [text] = await evaluateText(node.raw, env);
         return out(text);
       }
       case 'ELEMENT':
       case 'VOID':
         if (tagComponent.match(node)) {
-          return out(await tagComponent.render(node, this));
+          return out(await tagComponent.render(node, env));
         }
-        return out(await this.renderParent(node));
+        return out(await this.renderParent(node, env));
       case 'INVISIBLE':
         switch (node.tag) {
           case 'ssr-script':
@@ -235,29 +228,29 @@ export class Hypermore {
             console.warn(`<ssr-elseif> outside of <ssr-if>`);
             return out();
           case 'ssr-if':
-            return out(await tagIf.render(node, this));
+            return out(await tagIf.render(node, env));
           case 'ssr-for':
-            return out(await tagFor.render(node, this));
+            return out(await tagFor.render(node, env));
           case 'ssr-html':
-            return out(await tagHtml.render(node, this));
+            return out(await tagHtml.render(node, env));
           case 'ssr-element':
-            return out(await tagElement.render(node, this));
+            return out(await tagElement.render(node, env));
           case 'ssr-fragment': {
             const portal = node.attributes.get('portal');
             if (portal) {
-              const html = await this.renderChildren(node);
-              this.#fragments.add({html, portal});
+              const html = await this.renderChildren(node, env);
+              env.fragments.add({html, portal});
             } else {
               console.warn(`<ssr-fragment> unknown`);
             }
             return out();
           }
           case 'ssr-slot':
-            return out(await this.renderChildren(node));
+            return out(await this.renderChildren(node, env));
           case 'ssr-portal':
-            return out(await this.renderChildren(node));
+            return out(await this.renderChildren(node, env));
         }
-        return out(await this.renderParent(node));
+        return out(await this.renderParent(node, env));
     }
   }
 
@@ -266,10 +259,10 @@ export class Hypermore {
    * @param node Node
    * @returns HTML string
    */
-  async renderChildren(node: Node): Promise<string> {
+  async renderChildren(node: Node, env: Environment): Promise<string> {
     let out = '';
     for (const child of node.children) {
-      out += await this.renderNode(child);
+      out += await this.renderNode(child, env);
     }
     return out;
   }
@@ -279,10 +272,10 @@ export class Hypermore {
    * @param node Node
    * @returns HTML string
    */
-  async renderParent(node: Node): Promise<string> {
+  async renderParent(node: Node, env: Environment): Promise<string> {
     // Evaluate attributes
     for (const [key, value] of node.attributes) {
-      const [newValue] = await evaluateText(value, this);
+      const [newValue] = await evaluateText(value, env);
       node.attributes.set(key, newValue);
     }
     if (node.type === 'OPAQUE') {
@@ -290,7 +283,7 @@ export class Hypermore {
     }
     // Render children between
     let out = node.tagOpen;
-    out += await this.renderChildren(node);
+    out += await this.renderChildren(node, env);
     out += node.tagClose;
     return out;
   }

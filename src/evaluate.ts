@@ -1,4 +1,4 @@
-import type {Hypermore, JSONArray, JSONValue, Props} from './types.ts';
+import type {Environment, JSONArray, JSONValue, Props} from './types.ts';
 import {escape} from './parse.ts';
 import {encodeValue, escapeChars, reservedProps, toCamelCase} from './utils.ts';
 import tagComponent from './tag-component.ts';
@@ -10,16 +10,16 @@ import tagComponent from './tag-component.ts';
  */
 export const evaluateCode = async <T = JSONValue>(
   code: string,
-  context: Hypermore
+  env: Environment
 ): Promise<T> => {
   let detail = '';
-  const {currentNode: node} = context;
+  const {node} = env;
   if (node) {
     // Improve error message with expression and parent component
     detail = ` in expression: "${escapeChars(node.toString())}"'`;
-    const parent = tagComponent.validate(node, context)
+    const parent = tagComponent.validate(node, env)
       ? node
-      : node.closest((n) => tagComponent.validate(n, context));
+      : node.closest((n) => tagComponent.validate(n, env));
     if (parent) detail += ` in element: <${parent.raw}>`;
   }
   const module = Function(`'use strict'; return async function() {
@@ -40,17 +40,17 @@ export const evaluateCode = async <T = JSONValue>(
  */
 export const evaluateContext = <T = JSONValue>(
   expression: string,
-  context: Hypermore,
+  env: Environment,
   otherProps?: Props,
   wrapReturn = true
 ): Promise<T> => {
   // Add global props to scope
-  let code = `const globalProps = ${encodeValue(context.globalProps)};\n`;
+  let code = `const globalProps = ${encodeValue(env.ctx.globalProps)};\n`;
 
   // Add context props into scope
   const props = {
-    ...context.globalProps,
-    ...context.localProps,
+    ...env.ctx.globalProps,
+    ...env.localProps.at(-1),
     ...otherProps
   };
   for (let [key, value] of Object.entries(props)) {
@@ -66,7 +66,7 @@ export const evaluateContext = <T = JSONValue>(
   } else {
     code = `${code}\n ${expression}`;
   }
-  return evaluateCode(code, context);
+  return evaluateCode(code, env);
 };
 
 /**
@@ -77,7 +77,7 @@ export const evaluateContext = <T = JSONValue>(
  */
 export const evaluateText = async (
   text: string,
-  context: Hypermore
+  env: Environment
 ): Promise<[string, JSONArray]> => {
   let out = '';
   const results: JSONArray = [];
@@ -101,8 +101,8 @@ export const evaluateText = async (
     } else {
       // Strip and append evaluation
       text = text.substring(match[0].length);
-      const result = await evaluateContext(match[1], context);
-      out += context.autoEscape ? escape(String(result)) : result;
+      const result = await evaluateContext(match[1], env);
+      out += env.ctx.autoEscape ? escape(String(result)) : result;
       results.push(result);
     }
   }

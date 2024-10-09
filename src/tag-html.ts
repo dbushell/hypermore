@@ -1,4 +1,4 @@
-import type {Hypermore, HypermoreTag, Node} from './types.ts';
+import type {Environment, HyperTag, Node} from './types.ts';
 
 const tagName = 'ssr-html';
 
@@ -13,16 +13,16 @@ const validate = (node: Node): boolean => {
   return true;
 };
 
-const render = async (node: Node, context: Hypermore): Promise<string> => {
+const render = async (node: Node, env: Environment): Promise<string> => {
   // Disable auto escape and re-renable to previous state later
-  const autoEscape = context.autoEscape;
-  context.autoEscape = false;
-  const out = await context.renderChildren(node);
-  context.autoEscape = autoEscape;
+  const autoEscape = env.ctx.autoEscape;
+  env.ctx.autoEscape = false;
+  const out = await env.ctx.renderChildren(node, env);
+  env.ctx.autoEscape = autoEscape;
   return out;
 };
 
-const Tag: HypermoreTag = {
+const Tag: HyperTag = {
   tagName,
   match,
   render,

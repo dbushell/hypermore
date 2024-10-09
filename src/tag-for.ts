@@ -1,4 +1,4 @@
-import type {Hypermore, HypermoreTag, JSONValue, Props} from './types.ts';
+import type {Environment, HyperTag, JSONValue, Props} from './types.ts';
 import {evaluateContext} from './evaluate.ts';
 import {Node} from './parse.ts';
 import {isVariable} from './utils.ts';
@@ -30,13 +30,13 @@ const validate = (node: Node): boolean => {
   return true;
 };
 
-const render = async (node: Node, context: Hypermore): Promise<string> => {
+const render = async (node: Node, env: Environment): Promise<string> => {
   const itemProp = node.attributes.get('item')!;
   const indexProp = node.attributes.get('index');
 
   // Parse "of" attribute
   const expression = node.attributes.get('of')!;
-  let items = await evaluateContext(expression, context);
+  let items = await evaluateContext(expression, env);
 
   // Convert string to numeric value
   if (typeof items === 'string') {
@@ -62,18 +62,18 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   // Render each item with individual props
   let out = '';
   for (const [i, item] of [...(items as Iterable<JSONValue>)].entries()) {
-    const props = {...context.localProps, [itemProp]: item} as Props;
+    const props = {...env.localProps.at(-1), [itemProp]: item} as Props;
     const clone = template.clone();
     node.append(clone);
     for (const child of clone.children) {
       if (indexProp) props[indexProp] = i;
-      out += (await context.renderNode(child, props)) ?? '';
+      out += (await env.ctx.renderNode(child, env, props)) ?? '';
     }
   }
   return out;
 };
 
-const Tag: HypermoreTag = {
+const Tag: HyperTag = {
   tagName,
   match,
   render,

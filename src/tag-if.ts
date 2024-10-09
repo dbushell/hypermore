@@ -1,4 +1,4 @@
-import type {Hypermore, HypermoreTag} from './types.ts';
+import type {Environment, HyperTag} from './types.ts';
 import {evaluateContext} from './evaluate.ts';
 import {Node} from './parse.ts';
 
@@ -19,7 +19,7 @@ const validate = (node: Node): boolean => {
   return true;
 };
 
-const render = async (node: Node, context: Hypermore): Promise<string> => {
+const render = async (node: Node, env: Environment): Promise<string> => {
   // First <ssr-if> condition
   const expression = node.attributes.get('condition')!;
 
@@ -56,10 +56,10 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
 
   // Render first matching condition
   for (const {expression, statement} of conditions) {
-    const result = await evaluateContext(expression, context);
+    const result = await evaluateContext(expression, env);
     if (Boolean(result) === false) continue;
     node.replace(statement);
-    return context.renderChildren(statement);
+    return env.ctx.renderChildren(statement, env);
   }
 
   // No matches
@@ -67,7 +67,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   return '';
 };
 
-const Tag: HypermoreTag = {
+const Tag: HyperTag = {
   tagName,
   match,
   render,

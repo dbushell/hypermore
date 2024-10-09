@@ -1,4 +1,4 @@
-import type {Hypermore, HypermoreTag, Node, Props} from './types.ts';
+import type {Environment, HyperTag, Node, Props} from './types.ts';
 import {evaluateContext, evaluateText} from './evaluate.ts';
 
 const match = (node: string | Node): boolean => {
@@ -10,18 +10,18 @@ const match = (node: string | Node): boolean => {
 };
 
 // Already cloned, or template exists for tag name
-const validate = (node: Node, context: Hypermore): boolean =>
-  context.hasComponent(node) || context.hasTemplate(node.tag);
+const validate = (node: Node, env: Environment): boolean =>
+  env.ctx.hasComponent(node) || env.ctx.hasTemplate(node.tag);
 
-const render = async (node: Node, context: Hypermore): Promise<string> => {
+const render = async (node: Node, env: Environment): Promise<string> => {
   // Ignore custom elements with no template
-  if (validate(node, context) === false) {
-    return context.renderParent(node);
+  if (validate(node, env) === false) {
+    return env.ctx.renderParent(node, env);
   }
   // Ignore elements within <ssr-html> block
   const parent = node.closest((n) => n.tag === 'ssr-html');
   if (parent) {
-    return context.renderParent(node);
+    return env.ctx.renderParent(node, env);
   }
 
   const slots = new Map<string, Node>();
@@ -29,7 +29,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   const fragments = new Set<Node>();
   const cleared = new Set<Node>();
 
-  const template = context.cloneTemplate(node.tag)!;
+  const template = env.ctx.cloneTemplate(node.tag, env)!;
   template.type = 'INVISIBLE';
   template.raw = node.tag;
 
@@ -75,9 +75,9 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
   fragments.forEach((n) => n.detach());
 
   // Setup component props and attributes
-  let props: Props = {...context.localProps};
+  let props: Props = {...env.localProps.at(-1)};
   for (const [key, value] of node.attributes) {
-    const [newValue, vars] = await evaluateText(value, context);
+    const [newValue, vars] = await evaluateText(value, env);
     node.attributes.set(key, newValue);
     // Preserve type of singular expression
     const single = /^\s*{{.+}}\s*$/.test(value);
@@ -101,7 +101,7 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
     const mod = await evaluateContext<{
       defaultProps?: Props;
       localProps?: Props;
-    }>(code, context, props, false);
+    }>(code, env, props, false);
     if (typeof mod.defaultProps === 'object') {
       props = {
         ...mod.defaultProps,
@@ -127,10 +127,10 @@ const render = async (node: Node, context: Hypermore): Promise<string> => {
     console.warn(`<${node.tag}> infinite nested loop`);
   }
 
-  return context.renderNode(template, props);
+  return env.ctx.renderNode(template, env, props);
 };
 
-const Tag: HypermoreTag = {
+const Tag: HyperTag = {
   tagName: 'ssr-component',
   match,
   render,
