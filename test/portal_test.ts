@@ -29,5 +29,20 @@ Deno.test('portals', async (test) => {
     const output = await hypermore.render(html);
     assertEquals(output, ` End!`);
   });
+  await test.step('props', async () => {
+    const html = `<ssr-fragment portal="head">{{prop1}}{{prop2}}</fragment><ssr-portal name="head"/>`;
+    const output = await hypermore.render(
+      html,
+      {
+        prop1: '1'
+      },
+      {
+        globalProps: {
+          prop2: '2'
+        }
+      }
+    );
+    assertEquals(output, `12`);
+  });
   warn.release();
 });
