@@ -1,4 +1,4 @@
-import {assertEquals} from 'jsr:@std/assert';
+import {assert, assertEquals} from 'jsr:@std/assert';
 import {hypermore, globalProps, warn} from './mod.ts';
 
 Deno.test('props', async (test) => {
@@ -42,6 +42,7 @@ Deno.test('props', async (test) => {
     try {
       await hypermore.render(html);
     } catch (err) {
+      assert(err instanceof Error);
       assertEquals(err.message.includes(`"missing is not defined"`), true);
       assertEquals(err.message.includes(`{{ missing.join('') }}`), true);
     }
@@ -51,6 +52,7 @@ Deno.test('props', async (test) => {
     try {
       await hypermore.render(html);
     } catch (err) {
+      assert(err instanceof Error);
       assertEquals(err.message.includes(`expression: "{{prop}}"`), true);
       assertEquals(err.message.includes(`element: <my-prop>`), true);
     }
