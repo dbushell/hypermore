@@ -1,18 +1,18 @@
-import type {Environment, HyperTag} from './types.ts';
-import {addVars} from './environment.ts';
-import {Node} from './parse.ts';
+import type { Environment, HyperTag } from "./types.ts";
+import { addVars } from "./environment.ts";
+import { Node } from "./parse.ts";
 
-const tagName = 'ssr-if';
+const tagName = "ssr-if";
 
 const match = (node: string | Node): boolean =>
-  (typeof node === 'string' ? node : node.tag) === tagName;
+  (typeof node === "string" ? node : node.tag) === tagName;
 
 const validate = (node: Node): boolean => {
   if (node.size === 0) {
     console.warn(`<ssr-if> with no statement`);
     return false;
   }
-  if (node.attributes.has('condition') === false) {
+  if (node.attributes.has("condition") === false) {
     console.warn(`<ssr-if> missing "condition" property`);
     return false;
   }
@@ -21,32 +21,31 @@ const validate = (node: Node): boolean => {
 
 const render = async (node: Node, env: Environment): Promise<void> => {
   // First <ssr-if> condition
-  const expression = node.attributes.get('condition')!;
+  const expression = node.attributes.get("condition")!;
 
   // List of conditions to check in order
-  const conditions = [{expression, statement: new Node(null, 'INVISIBLE')}];
+  const conditions = [{ expression, statement: new Node(null, "INVISIBLE") }];
 
   // Iterate over <ssr-if> child nodes
   // <ssr-else> and <ssr-elseif> are added as new conditions
   // All other nodes are appended to the last condition
   for (const child of [...node.children]) {
-    // child.detach();
-    if (child.tag === 'ssr-else') {
+    if (child.tag === "ssr-else") {
       conditions.push({
-        expression: 'true',
-        statement: new Node(null, 'INVISIBLE')
+        expression: "true",
+        statement: new Node(null, "INVISIBLE"),
       });
       continue;
     }
-    if (child.tag === 'ssr-elseif') {
-      let expression = child.attributes.get('condition');
+    if (child.tag === "ssr-elseif") {
+      let expression = child.attributes.get("condition");
       if (expression === undefined) {
         console.warn(`<ssr-elseif> with invalid condition`);
-        expression = 'false';
+        expression = "false";
       }
       conditions.push({
         expression,
-        statement: new Node(null, 'INVISIBLE')
+        statement: new Node(null, "INVISIBLE"),
       });
       continue;
     }
@@ -56,11 +55,11 @@ const render = async (node: Node, env: Environment): Promise<void> => {
 
   // Add callbacks to render statements
   for (let i = 0; i < conditions.length; i++) {
-    const {expression, statement} = conditions[i];
+    const { expression, statement } = conditions[i];
     env.code += `const __S${i} = () => {\n`;
     await env.ctx.renderChildren(statement, env);
     env.code += `}\n`;
-    addVars({[`__C${i}`]: `{{${expression}}}`}, [], env, true, false);
+    addVars({ [`__C${i}`]: `{{${expression}}}` }, [], env, true, false);
   }
 
   for (let i = 0; i < conditions.length; i++) {
@@ -75,14 +74,14 @@ const render = async (node: Node, env: Environment): Promise<void> => {
     env.code += `__S${i}();\n`;
   }
   // Close final statement
-  env.code += '}\n';
+  env.code += "}\n";
 };
 
 const Tag: HyperTag = {
   tagName,
   match,
   render,
-  validate
+  validate,
 };
 
 export default Tag;

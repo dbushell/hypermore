@@ -1,13 +1,13 @@
-import type {Environment, HyperTag} from './types.ts';
-import {Node} from './parse.ts';
+import type { Environment, HyperTag } from "./types.ts";
+import { Node } from "./parse.ts";
 
-const tagName = 'ssr-element';
+const tagName = "ssr-element";
 
 const match = (node: string | Node): boolean =>
-  (typeof node === 'string' ? node : node.tag) === tagName;
+  (typeof node === "string" ? node : node.tag) === tagName;
 
 const validate = (node: Node): boolean => {
-  if (node.attributes.has('tag') === false) {
+  if (node.attributes.has("tag") === false) {
     console.warn(`<ssr-element> missing "tag" property`);
     return false;
   }
@@ -16,10 +16,10 @@ const validate = (node: Node): boolean => {
 
 const render = async (node: Node, env: Environment): Promise<void> => {
   // Create new node from tag attribute
-  const tag = node.attributes.get('tag')!;
-  const raw = node.raw.replace('<ssr-element', `<${tag}`);
-  const newNode = new Node(null, 'ELEMENT', raw, tag, node.attributes);
-  newNode.attributes.delete('tag');
+  const tag = node.attributes.get("tag")!;
+  const raw = node.raw.replace("<ssr-element", `<${tag}`);
+  const newNode = new Node(null, "ELEMENT", raw, tag, node.attributes);
+  newNode.attributes.delete("tag");
   // Move children to new node
   for (const child of [...node.children]) {
     newNode.append(child);
@@ -31,7 +31,7 @@ const Tag: HyperTag = {
   tagName,
   match,
   render,
-  validate
+  validate,
 };
 
 export default Tag;

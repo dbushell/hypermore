@@ -1,63 +1,63 @@
-import {assertEquals} from 'jsr:@std/assert';
-import {hypermore, warn} from './mod.ts';
+import { assertEquals } from "jsr:@std/assert";
+import { hypermore, warn } from "./mod.ts";
 
-Deno.test('<ssr-for> tag', async (test) => {
+Deno.test("<ssr-for> tag", async (test) => {
   warn.capture();
-  await test.step('void statement', async () => {
+  await test.step("void statement", async () => {
     const html = `<ssr-for />`;
     const output = await hypermore.render(html);
-    assertEquals(output, '');
-    assertEquals(warn.stack.pop(), ['<ssr-for> with no statement']);
+    assertEquals(output, "");
+    assertEquals(warn.stack.pop(), ["<ssr-for> with no statement"]);
   });
-  await test.step('empty statement', async () => {
+  await test.step("empty statement", async () => {
     const html = `<ssr-for></for>`;
     const output = await hypermore.render(html);
-    assertEquals(output, '');
-    assertEquals(warn.stack.pop(), ['<ssr-for> with no statement']);
+    assertEquals(output, "");
+    assertEquals(warn.stack.pop(), ["<ssr-for> with no statement"]);
   });
   await test.step('missing "of" property', async () => {
     const html = `<ssr-for>Fail!</for>`;
     const output = await hypermore.render(html);
-    assertEquals(output, '');
+    assertEquals(output, "");
     assertEquals(warn.stack.pop(), ['<ssr-for> missing "of" property']);
   });
   await test.step('missing "item" property', async () => {
     const html = `<ssr-for of="5">Fail!</for>`;
     const output = await hypermore.render(html);
-    assertEquals(output, '');
+    assertEquals(output, "");
     assertEquals(warn.stack.pop(), ['<ssr-for> invalid "item" property']);
   });
   await test.step('invalid "item" property', async () => {
     const html = `<ssr-for item="!!" of="5">Fail!</for>`;
     const output = await hypermore.render(html);
-    assertEquals(output, '');
+    assertEquals(output, "");
     assertEquals(warn.stack.pop(), ['<ssr-for> invalid "item" property']);
   });
   await test.step('invalid "index" property', async () => {
     const html = `<ssr-for index="!!" item="item" of="5">Fail!</for>`;
     const output = await hypermore.render(html);
-    assertEquals(output, '');
+    assertEquals(output, "");
     assertEquals(warn.stack.pop(), ['<ssr-for> invalid "index" property']);
   });
-  await test.step('number range', async () => {
+  await test.step("number range", async () => {
     const html = `<ssr-for item="n" of="3">{{n + 1}}</for>`;
     const output = await hypermore.render(html);
-    assertEquals(output, '123');
+    assertEquals(output, "123");
   });
-  await test.step('characters', async () => {
+  await test.step("characters", async () => {
     const html = `<ssr-for item="n" of="'abc'">{{n}}</for>`;
     const output = await hypermore.render(html);
-    assertEquals(output, 'abc');
+    assertEquals(output, "abc");
   });
-  await test.step('array', async () => {
+  await test.step("array", async () => {
     const html = `<ssr-for item="n" of="[1,2,3,'a','b','c']">{{n}}</for>`;
     const output = await hypermore.render(html);
-    assertEquals(output, '123abc');
+    assertEquals(output, "123abc");
   });
-  // await test.step('array (global prop)', async () => {
-  //   const html = `<ssr-for item="n" of="globalProps.array">{{n}}</for>`;
-  //   const output = await hypermore.render(html);
-  //   assertEquals(output, '123abc');
-  // });
+  await test.step("array (global prop)", async () => {
+    const html = `<ssr-for item="n" of="globalProps.array">{{n}}</for>`;
+    const output = await hypermore.render(html);
+    assertEquals(output, "123abc");
+  });
   warn.release();
 });

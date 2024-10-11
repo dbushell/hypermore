@@ -1,6 +1,6 @@
 {
   "name": "@dbushell/hypermore",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dbushell/hypermore.git"
@@ -23,6 +23,6 @@
     "README.md"
   ],
   "dependencies": {
-    "@dbushell/hyperless": "^0.21.0"
+    "@dbushell/hyperless": "^0.24.0"
   }
 }

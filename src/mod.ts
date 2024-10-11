@@ -1,19 +1,19 @@
-import type {Environment, JSONObject, Options} from './types.ts';
-import {Node, parseHTML} from './parse.ts';
+import type { Environment, JSONObject, Options } from "./types.ts";
+import { Node, parseHTML } from "./parse.ts";
 import {
   addVars,
   envFooter,
   envHeader,
+  parseVars,
   renderEnv,
-  parseVars
-} from './environment.ts';
-import {escapeChars, specialTags} from './utils.ts';
-import tagIf from './tag-if.ts';
-import tagFor from './tag-for.ts';
-import tagHtml from './tag-html.ts';
-import tagScript from './tag-script.ts';
-import tagElement from './tag-element.ts';
-import tagComponent from './tag-component.ts';
+} from "./environment.ts";
+import { escapeChars, specialTags } from "./utils.ts";
+import tagIf from "./tag-if.ts";
+import tagFor from "./tag-for.ts";
+import tagHtml from "./tag-html.ts";
+import tagScript from "./tag-script.ts";
+import tagElement from "./tag-element.ts";
+import tagComponent from "./tag-component.ts";
 
 /** Hypermore class */
 export class Hypermore {
@@ -30,7 +30,7 @@ export class Hypermore {
 
   /** Update options */
   setOptions(options: Options): void {
-    if (typeof options.autoEscape === 'boolean') {
+    if (typeof options.autoEscape === "boolean") {
       this.autoEscape = options.autoEscape;
     }
     if (options.globalProps) {
@@ -56,7 +56,7 @@ export class Hypermore {
       throw new Error(`invalid template name`);
     }
     const node = parseHTML(html, {
-      rootTag: /^\w+$/.test(name) ? name : undefined
+      rootTag: /^\w+$/.test(name) ? name : undefined,
     });
     this.#templates.set(name, node);
   }
@@ -78,7 +78,7 @@ export class Hypermore {
   async render(
     html: string,
     props?: JSONObject,
-    options?: Options
+    options?: Options,
   ): Promise<string> {
     if (options) this.setOptions(options);
     // Create new render env
@@ -87,10 +87,10 @@ export class Hypermore {
       ctx: this,
       node: undefined,
       localProps: [],
-      portals: new Map()
+      portals: new Map(),
     };
     // Add global props object
-    addVars({globalProps: this.#globalProps}, [], env, false, false);
+    addVars({ globalProps: this.#globalProps }, [], env, false, false);
     // Add destructured global props
     addVars(this.#globalProps, [], env, false);
     // Parse and validate template node
@@ -103,7 +103,7 @@ export class Hypermore {
       env.code += `__PORTALS.set('${name}', '${comment}');\n`;
     }
     env.code += envFooter;
-    let result = '';
+    let result = "";
     try {
       result = await renderEnv(env);
     } catch (err) {
@@ -122,7 +122,7 @@ export class Hypermore {
     root.traverse((node) => {
       // Flag special tags as invisible for render switch
       if (specialTags.has(node.tag)) {
-        node.type = 'INVISIBLE';
+        node.type = "INVISIBLE";
       }
       // Return false so inner special tags are rendered as elements
       if (tagHtml.match(node)) {
@@ -133,7 +133,7 @@ export class Hypermore {
       }
       if (tagScript.match(node)) {
         tagScript.validate(node, env);
-        if (node.attributes.get('context') !== 'component') {
+        if (node.attributes.get("context") !== "component") {
           remove.add(node);
         }
       }
@@ -152,16 +152,16 @@ export class Hypermore {
           remove.add(node);
         }
       }
-      if (node.tag === 'ssr-fragment') {
-        const slot = node.attributes.get('slot');
-        const portal = node.attributes.get('portal');
+      if (node.tag === "ssr-fragment") {
+        const slot = node.attributes.get("slot");
+        const portal = node.attributes.get("portal");
         if (slot === undefined && portal === undefined) {
           console.warn(`<ssr-fragment> missing "slot" or "portal" property`);
           remove.add(node);
         }
       }
-      if (node.tag === 'ssr-portal') {
-        const name = node.attributes.get('name');
+      if (node.tag === "ssr-portal") {
+        const name = node.attributes.get("name");
         if (name === undefined) {
           console.warn(`<ssr-portal> missing "name" property`);
           remove.add(node);
@@ -170,7 +170,7 @@ export class Hypermore {
           // A temporary comment is replaced later with extracted fragments
           // Random UUID is used to avoid authored comment conflicts
           const comment = `<!--${crypto.randomUUID()}-->`;
-          node.append(new Node(node, 'COMMENT', comment));
+          node.append(new Node(node, "COMMENT", comment));
           env.portals.set(name, comment);
         }
       }
@@ -189,11 +189,11 @@ export class Hypermore {
     node: Node,
     env: Environment,
     props?: JSONObject,
-    script?: string
+    script?: string,
   ): Promise<void> {
     env.node = node;
     // Start nested block scope
-    env.code += '{\n';
+    env.code += "{\n";
     // Stack new props
     let updatedProps: JSONObject | undefined;
     if (props) {
@@ -201,13 +201,13 @@ export class Hypermore {
       env.localProps.push(props);
     }
     if (script) {
-      env.code += script + '\n';
+      env.code += script + "\n";
     }
     // Wrap return to unstack new props
-    const out = (value = ''): void => {
+    const out = (value = ""): void => {
       if (value.length) env.code += `__EXPORT += \`${value}\`;\n`;
       // End nested block scope;
-      env.code += '}\n';
+      env.code += "}\n";
       // Reset prop values
       if (props) {
         if (updatedProps && Object.keys(updatedProps).length) {
@@ -217,60 +217,61 @@ export class Hypermore {
       }
     };
     switch (node.type) {
-      case 'COMMENT':
+      case "COMMENT":
         return out(node.raw);
-      case 'OPAQUE':
+      case "OPAQUE":
         await this.renderParent(node, env);
         return out();
-      case 'ROOT':
+      case "ROOT":
         await this.renderChildren(node, env);
         return out();
-      case 'STRAY':
+      case "STRAY":
         console.warn(`stray closing tag "${node.tag}"`);
         return out();
-      case 'TEXT': {
+      case "TEXT": {
         if (node.raw.length === 0) return out();
         if (/^\s*$/.test(node.raw)) {
-          return out(node.raw.indexOf('\n') > -1 ? '\n' : ' ');
+          return out(node.raw.indexOf("\n") > -1 ? "\n" : " ");
         }
         return out(parseVars(node.raw, env.ctx.autoEscape));
       }
-      case 'ELEMENT':
-      case 'VOID':
+      case "ELEMENT":
+      case "VOID":
         if (tagComponent.match(node)) {
           await tagComponent.render(node, env);
           return out();
         }
         await this.renderParent(node, env);
         return out();
-      case 'INVISIBLE':
+      case "INVISIBLE":
         switch (node.tag) {
-          case 'ssr-script':
+          case "ssr-script":
             console.warn(`<ssr-script> unknown`);
             return out();
-          case 'ssr-else':
+          case "ssr-else":
             console.warn(`<ssr-else> outside of <ssr-if>`);
             return out();
-          case 'ssr-elseif':
+          case "ssr-elseif":
             console.warn(`<ssr-elseif> outside of <ssr-if>`);
             return out();
-          case 'ssr-if':
+          case "ssr-if":
             await tagIf.render(node, env);
             return out();
-          case 'ssr-for':
+          case "ssr-for":
             await tagFor.render(node, env);
             return out();
-          case 'ssr-html':
+          case "ssr-html":
             await tagHtml.render(node, env);
             return out();
-          case 'ssr-element':
+          case "ssr-element":
             await tagElement.render(node, env);
             return out();
-          case 'ssr-fragment': {
-            const portal = node.attributes.get('portal');
+          case "ssr-fragment": {
+            const portal = node.attributes.get("portal");
             if (portal) {
               env.code += `const __TMP = __EXPORT;\n`;
-              env.code += `__FRAGMENTS.add({portal: '${portal}', html: (() => {\n`;
+              env.code +=
+                `__FRAGMENTS.add({portal: '${portal}', html: (() => {\n`;
               env.code += `let __EXPORT = '';\n`;
               await this.renderChildren(node, env);
               env.code += `return __EXPORT;\n`;
@@ -281,10 +282,10 @@ export class Hypermore {
             }
             return out();
           }
-          case 'ssr-slot':
+          case "ssr-slot":
             await this.renderChildren(node, env);
             return out();
-          case 'ssr-portal':
+          case "ssr-portal":
             await this.renderChildren(node, env);
             return out();
         }
@@ -312,20 +313,20 @@ export class Hypermore {
   async renderParent(node: Node, env: Environment): Promise<void> {
     // Evaluate attributes
     for (let [key, value] of node.attributes) {
-      if (value.indexOf('{{') === -1) continue;
+      if (value.indexOf("{{") === -1) continue;
       let id = crypto.randomUUID();
       if (env.uuid) id = `\${${env.uuid}}-${id}`;
       value = parseVars(value, env.ctx.autoEscape);
       env.code += `__REPLACE.set(\`${id}\`, \`${value}\`);\n`;
       node.attributes.set(key, id);
     }
-    if (node.type === 'OPAQUE') {
+    if (node.type === "OPAQUE") {
       env.code += `__EXPORT += \`${escapeChars(node.toString())}\`;\n`;
       return;
     }
     // Render children between
-    await this.renderNode(new Node(null, 'TEXT', node.tagOpen), env);
+    await this.renderNode(new Node(null, "TEXT", node.tagOpen), env);
     await this.renderChildren(node, env);
-    await this.renderNode(new Node(null, 'TEXT', node.tagClose), env);
+    await this.renderNode(new Node(null, "TEXT", node.tagClose), env);
   }
 }

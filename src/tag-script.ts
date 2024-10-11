@@ -1,9 +1,9 @@
-import type {HyperTag, Node} from './types.ts';
+import type { HyperTag, Node } from "./types.ts";
 
-const tagName = 'ssr-script';
+const tagName = "ssr-script";
 
 const match = (node: string | Node): boolean =>
-  (typeof node === 'string' ? node : node.tag) === tagName;
+  (typeof node === "string" ? node : node.tag) === tagName;
 
 const validate = (node: Node): boolean => {
   if (node.size === 0) {
@@ -19,7 +19,7 @@ const Tag: HyperTag = {
   tagName,
   match,
   render,
-  validate
+  validate,
 };
 
 export default Tag;

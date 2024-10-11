@@ -1,12 +1,12 @@
-import type {Environment, HyperTag, Node} from './types.ts';
+import type { Environment, HyperTag, Node } from "./types.ts";
 
 /** Cache of cloned templates */
 const components = new WeakSet<Node>();
 
 const match = (node: string | Node): boolean => {
-  const tagName = typeof node === 'string' ? node : node.tag;
+  const tagName = typeof node === "string" ? node : node.tag;
   // Disallow reserved prefix
-  if (tagName.startsWith('ssr-')) return false;
+  if (tagName.startsWith("ssr-")) return false;
   // Match custom element naming pattern
   return /([a-z][\w]*-[\w]+)/.test(tagName);
 };
@@ -22,7 +22,7 @@ const render = async (node: Node, env: Environment): Promise<void> => {
     return;
   }
   // Ignore elements within <ssr-html> block
-  const parent = node.closest((n) => n.tag === 'ssr-html');
+  const parent = node.closest((n) => n.tag === "ssr-html");
   if (parent) {
     await env.ctx.renderParent(node, env);
     return;
@@ -30,7 +30,7 @@ const render = async (node: Node, env: Environment): Promise<void> => {
 
   // Clone the component
   const template = env.ctx.cloneTemplate(node.tag, env)!;
-  template.type = 'INVISIBLE';
+  template.type = "INVISIBLE";
   template.raw = node.tag;
   components.add(template);
 
@@ -42,25 +42,25 @@ const render = async (node: Node, env: Environment): Promise<void> => {
   // Find all slots in component template
   template.traverse((n) => {
     if (match(n)) return false;
-    if (n.tag !== 'ssr-slot') return;
-    const name = n.attributes.get('name');
-    slots.set(name ?? 'default', n);
+    if (n.tag !== "ssr-slot") return;
+    const name = n.attributes.get("name");
+    slots.set(name ?? "default", n);
   });
 
   // Find fragments and assign their children to slot
   node.traverse((n) => {
     if (match(n)) return false;
-    if (n.tag !== 'ssr-fragment') return;
+    if (n.tag !== "ssr-fragment") return;
     fragments.add(n);
-    const slot = n.attributes.get('slot')!;
+    const slot = n.attributes.get("slot")!;
     if (slot) n.children.forEach((c) => targets.set(c, slot));
   });
 
   // Assign top-level childen to default slot
-  if (node.size && slots.has('default')) {
+  if (node.size && slots.has("default")) {
     node.children.forEach((n) => {
-      if (n.tag === 'ssr-fragment') return;
-      targets.set(n, 'default');
+      if (n.tag === "ssr-fragment") return;
+      targets.set(n, "default");
     });
   }
 
@@ -79,7 +79,7 @@ const render = async (node: Node, env: Environment): Promise<void> => {
   // Avoid infinite loops
   const nested = new Set<Node>();
   template.traverse((n) => {
-    if (n.tag === 'ssr-if' || n.tag === 'ssr-for') return false;
+    if (n.tag === "ssr-if" || n.tag === "ssr-for") return false;
     if (n.tag === node.tag) nested.add(n);
   });
   if (nested.size) {
@@ -90,15 +90,15 @@ const render = async (node: Node, env: Environment): Promise<void> => {
   // Find component script that can return props
   const script = template.find((n) => {
     return (
-      n.tag === 'ssr-script' && n.attributes.get('context') === 'component'
+      n.tag === "ssr-script" && n.attributes.get("context") === "component"
     );
   });
-  let code = '';
+  let code = "";
   if (script) {
     script.detach();
     code = script.at(0)!.raw;
-    code = code.replace(/^\s*<script([^>]*>)/, '');
-    code = code.replace(/<\/script>\s*/, '');
+    code = code.replace(/^\s*<script([^>]*>)/, "");
+    code = code.replace(/<\/script>\s*/, "");
   }
 
   const props = Object.fromEntries(node.attributes);
@@ -107,10 +107,10 @@ const render = async (node: Node, env: Environment): Promise<void> => {
 };
 
 const Tag: HyperTag = {
-  tagName: 'ssr-component',
+  tagName: "ssr-component",
   match,
   render,
-  validate
+  validate,
 };
 
 export default Tag;

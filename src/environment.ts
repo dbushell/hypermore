@@ -1,5 +1,5 @@
-import type {Environment, JSONObject, JSONValue} from './types.ts';
-import {escapeChars, reservedProps, toCamelCase} from './utils.ts';
+import type { Environment, JSONObject, JSONValue } from "./types.ts";
+import { escapeChars, reservedProps, toCamelCase } from "./utils.ts";
 
 export const envHeader = `
 let __EXPORT = '';
@@ -68,10 +68,10 @@ export const renderEnv = (env: Environment): Promise<string> => {
 
 /** Parse text and replace `{{expression}}` with code */
 export const parseVars = (text: string, escape = true): string => {
-  let out = '';
+  let out = "";
   while (text.length) {
     // Search for next expression
-    const next = text.indexOf('{{');
+    const next = text.indexOf("{{");
     // Append remaining text if not found
     if (next === -1) {
       out += text;
@@ -84,7 +84,7 @@ export const parseVars = (text: string, escape = true): string => {
     const match = text.match(/^{{([^{].*?)}}/s);
     if (match === null) {
       // Skip and continue searching
-      out += '{';
+      out += "{";
       text = text.substring(1);
     } else {
       out += `\`+__ESC(${match[1]}, ${escape})+\``;
@@ -96,22 +96,24 @@ export const parseVars = (text: string, escape = true): string => {
 
 /** Encode value for JavaScript string template */
 export const encodeVars = (value: JSONValue, parse = false): string => {
-  if (value === null) return 'null';
+  if (value === null) return "null";
   if (Array.isArray(value)) {
-    return `[${value.map((v) => encodeVars(v, parse)).join(',')}]`;
+    return `[${value.map((v) => encodeVars(v, parse)).join(",")}]`;
   }
   switch (typeof value) {
-    case 'boolean':
-    case 'number':
+    case "boolean":
+    case "number":
       return `${value}`;
-    case 'string':
+    case "string":
       value = `\`${escapeChars(value)}\``;
       return parse ? parseVars(value, false) : value;
-    case 'object': {
+    case "object": {
       // Do not attempt to parse objects
-      return `{${Object.entries(value)
-        .map(([k, v]) => `'${k}':${encodeVars(v, false)}`)
-        .join(',')}}`;
+      return `{${
+        Object.entries(value)
+          .map(([k, v]) => `'${k}':${encodeVars(v, false)}`)
+          .join(",")
+      }}`;
     }
   }
 };
@@ -122,7 +124,7 @@ export const addVars = (
   prevProps: Array<JSONObject> = [],
   env: Environment,
   parse = true,
-  check = true
+  check = true,
 ): JSONObject => {
   const updated: JSONObject = {};
   for (let [key, value] of Object.entries(props)) {

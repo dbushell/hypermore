@@ -1,45 +1,45 @@
-import {Hypermore} from '../mod.ts';
+import { Hypermore } from "../mod.ts";
 
 const entities = new Map([
-  ['&', '&amp;'],
-  ['<', '&lt;'],
-  ['>', '&gt;'],
-  ['"', '&quot;'],
-  ["'", '&#39;']
+  ["&", "&amp;"],
+  ["<", "&lt;"],
+  [">", "&gt;"],
+  ['"', "&quot;"],
+  ["'", "&#39;"],
 ]);
 
 export const globalProps = {
-  tag: 'h1',
+  tag: "h1",
   number: 42,
-  entities: [...entities.keys()].join(''),
-  encodedEntities: [...entities.values()].join(''),
+  entities: [...entities.keys()].join(""),
+  encodedEntities: [...entities.values()].join(""),
   escapeApostrophe: "It's It''s It'''s It\\'s It\\\\'s",
   escapeApostropheEncoded:
-    'It&#39;s It&#39;&#39;s It&#39;&#39;&#39;s It\\&#39;s It\\\\&#39;s',
-  array: [1, 2, 3, 'a', 'b', 'c']
+    "It&#39;s It&#39;&#39;s It&#39;&#39;&#39;s It\\&#39;s It\\\\&#39;s",
+  array: [1, 2, 3, "a", "b", "c"],
 };
 
 export const hypermore = new Hypermore({
-  globalProps
+  globalProps,
 });
 
-hypermore.setTemplate('my-html', `<ssr-html>{{html}}</ssr-html>`);
-hypermore.setTemplate('my-prop', `<p>{{number}}</p>`);
-hypermore.setTemplate('my-basic', `<main>Pass!</main>`);
-hypermore.setTemplate('single-slot', `<ssr-slot />`);
-hypermore.setTemplate('loop-slot', `<ssr-slot /><loop-slot />`);
-hypermore.setTemplate('void-slot', `<main><ssr-slot /></main>`);
+hypermore.setTemplate("my-html", `<ssr-html>{{html}}</ssr-html>`);
+hypermore.setTemplate("my-prop", `<p>{{number}}</p>`);
+hypermore.setTemplate("my-basic", `<main>Pass!</main>`);
+hypermore.setTemplate("single-slot", `<ssr-slot />`);
+hypermore.setTemplate("loop-slot", `<ssr-slot /><loop-slot />`);
+hypermore.setTemplate("void-slot", `<main><ssr-slot /></main>`);
 hypermore.setTemplate(
-  'fallback-slot',
-  `<main><ssr-slot>Fallack!</slot></main>`
+  "fallback-slot",
+  `<main><ssr-slot>Fallack!</slot></main>`,
 );
 hypermore.setTemplate(
-  'named-slot',
-  `<main><ssr-slot name="start">Unused!</slot><ssr-slot> Center! </slot><ssr-slot name="end" /></main>`
+  "named-slot",
+  `<main><ssr-slot name="start">Unused!</slot><ssr-slot> Center! </slot><ssr-slot name="end" /></main>`,
 );
 hypermore.setTemplate(
-  'my-button',
-  `<button type="{{type}}"><span>{{label}}</span></button>`
+  "my-button",
+  `<button type="{{type}}"><span>{{label}}</span></button>`,
 );
 
 const consoleWarn = console.warn;
@@ -58,5 +58,5 @@ const releaseWarn = () => {
 export const warn = {
   capture: captureWarn,
   release: releaseWarn,
-  stack: warnStack
+  stack: warnStack,
 };

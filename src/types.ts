@@ -1,7 +1,7 @@
-import type {Node} from './parse.ts';
-import type {Hypermore} from './mod.ts';
+import type { Node } from "./parse.ts";
+import type { Hypermore } from "./mod.ts";
 
-export type {Node, Hypermore};
+export type { Hypermore, Node };
 
 /** Props value */
 export type JSONValue =

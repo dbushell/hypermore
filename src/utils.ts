@@ -1,19 +1,19 @@
 /** List of tags to never render */
 export const specialTags = new Set([
-  'ssr-else',
-  'ssr-elseif',
-  'ssr-element',
-  'ssr-fragment',
-  'ssr-for',
-  'ssr-html',
-  'ssr-if',
-  'ssr-slot',
-  'ssr-portal',
-  'ssr-script'
+  "ssr-else",
+  "ssr-elseif",
+  "ssr-element",
+  "ssr-fragment",
+  "ssr-for",
+  "ssr-html",
+  "ssr-if",
+  "ssr-slot",
+  "ssr-portal",
+  "ssr-script",
 ]);
 
 /** Reserved property names */
-export const reservedProps = new Set(['globalProps']);
+export const reservedProps = new Set(["globalProps"]);
 
 /** Returns true if name is valid variable */
 export const isVariable = (name: string): boolean => {
@@ -23,16 +23,16 @@ export const isVariable = (name: string): boolean => {
 /** Return custom element name from path */
 export const componentName = (path: string | URL): string => {
   let name = path.toString();
-  name = name.split('/').at(-1) ?? name;
-  name = name.split('.', 1)[0];
-  name = name.replace(/[^\w:-]/g, '');
+  name = name.split("/").at(-1) ?? name;
+  name = name.split(".", 1)[0];
+  name = name.replace(/[^\w:-]/g, "");
   return toKebabCase(name);
 };
 
 /** Escape characters for Javascript string template */
-export const escapeChars = (str: string, chars = ['`', '$']): string => {
-  str = str.replace(/\\/g, '\\\\');
-  for (const c of chars) str = str.replaceAll(c, '\\' + c);
+export const escapeChars = (str: string, chars = ["`", "$"]): string => {
+  str = str.replace(/\\/g, "\\\\");
+  for (const c of chars) str = str.replaceAll(c, "\\" + c);
   return str;
 };
 
@@ -48,7 +48,7 @@ const DIGITS_REGEXP = /\p{N}+/u;
 
 const WORD_OR_NUMBER_REGEXP = new RegExp(
   `${CAPITALIZED_WORD_REGEXP.source}|${ACRONYM_REGEXP.source}|${LOWERCASED_WORD_REGEXP.source}|${ANY_LETTERS.source}|${DIGITS_REGEXP.source}`,
-  'gu'
+  "gu",
 );
 
 export function splitToWords(input: string) {
@@ -63,11 +63,11 @@ export function capitalizeWord(word: string): string {
 
 export function toKebabCase(input: string): string {
   input = input.trim();
-  return splitToWords(input).join('-').toLocaleLowerCase();
+  return splitToWords(input).join("-").toLocaleLowerCase();
 }
 
 export function toCamelCase(input: string): string {
   input = input.trim();
-  const [first = '', ...rest] = splitToWords(input);
-  return [first.toLocaleLowerCase(), ...rest.map(capitalizeWord)].join('');
+  const [first = "", ...rest] = splitToWords(input);
+  return [first.toLocaleLowerCase(), ...rest.map(capitalizeWord)].join("");
 }
