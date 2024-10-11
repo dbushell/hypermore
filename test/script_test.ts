@@ -1,6 +1,41 @@
 import {assertEquals} from 'jsr:@std/assert';
 import {hypermore, warn} from './mod.ts';
 
+hypermore.setTemplate(
+  'my-time',
+  `<ssr-script context="component">
+const newDate = new Date(date);
+const year = newDate.getFullYear().toString();
+const month = newDate.toLocaleString('en-GB', {month: 'long'});
+const day = newDate.toLocaleString('en-GB', {weekday: 'long'});
+
+date = \`\${year}, \${month}, \${day}\`;
+</ssr-script>
+{{date}}
+`
+);
+hypermore.setTemplate(
+  'my-default',
+  `<ssr-script context="component">
+
+const heading = 'Heading';
+const description = 'Description';
+
+// return {
+//   defaultProps: {
+//     heading: 'Heading',
+//     description: 'Fail!',
+//     end: 'Fail!'
+//   },
+//   localProps: {
+//     description: 'Description'
+//   }
+// };
+</ssr-script>
+{{heading}} {{description}} {{end}}
+`
+);
+
 Deno.test('<ssr-script> tag', async (test) => {
   await test.step('remove script', async () => {
     const html = `<ssr-script><p>Do <p>not <p>parse</ssr-script>`;

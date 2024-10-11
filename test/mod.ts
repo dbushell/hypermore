@@ -41,39 +41,6 @@ hypermore.setTemplate(
   'my-button',
   `<button type="{{type}}"><span>{{label}}</span></button>`
 );
-hypermore.setTemplate(
-  'my-time',
-  `<ssr-script context="component">
-const newDate = new Date(date);
-const year = newDate.getFullYear().toString();
-const month = newDate.toLocaleString('en-GB', {month: 'long'});
-const day = newDate.toLocaleString('en-GB', {weekday: 'long'});
-return {
-  localProps: {
-    date: \`\${year}, \${month}, \${day}\`
-  }
-};
-</ssr-script>
-{{date}}
-`
-);
-hypermore.setTemplate(
-  'my-default',
-  `<ssr-script context="component">
-return {
-  defaultProps: {
-    heading: 'Heading',
-    description: 'Fail!',
-    end: 'Fail!'
-  },
-  localProps: {
-    description: 'Description'
-  }
-};
-</ssr-script>
-{{heading}} {{description}} {{end}}
-`
-);
 
 const consoleWarn = console.warn;
 

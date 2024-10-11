@@ -27,7 +27,7 @@ Deno.test('portals', async (test) => {
   await test.step('missing name', async () => {
     const html = `<ssr-fragment portal="missing">Missing!</fragment><ssr-portal name="head" /> End!`;
     const output = await hypermore.render(html);
-    assertEquals(output, ` End!`);
+    assertEquals(output, `End!`);
   });
   await test.step('props', async () => {
     const html = `<ssr-fragment portal="head">{{prop1}}{{prop2}}</fragment><ssr-portal name="head"/>`;

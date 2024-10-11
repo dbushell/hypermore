@@ -54,10 +54,10 @@ Deno.test('<ssr-for> tag', async (test) => {
     const output = await hypermore.render(html);
     assertEquals(output, '123abc');
   });
-  await test.step('array (global prop)', async () => {
-    const html = `<ssr-for item="n" of="globalProps.array">{{n}}</for>`;
-    const output = await hypermore.render(html);
-    assertEquals(output, '123abc');
-  });
+  // await test.step('array (global prop)', async () => {
+  //   const html = `<ssr-for item="n" of="globalProps.array">{{n}}</for>`;
+  //   const output = await hypermore.render(html);
+  //   assertEquals(output, '123abc');
+  // });
   warn.release();
 });

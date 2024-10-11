@@ -13,7 +13,7 @@ const validate = (node: Node): boolean => {
   return true;
 };
 
-const render = () => Promise.resolve('');
+const render = () => Promise.resolve();
 
 const Tag: HyperTag = {
   tagName,

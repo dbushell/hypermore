@@ -21,15 +21,19 @@ Deno.test('misc', async (test) => {
   await test.step('inline script', async () => {
     const html = `<script type="text/javascript">
 alert('Fail!');
+\${test} \`
 Deno.exit(1);
 </script>`;
     const output = await hypermore.render(html);
     assertEquals(output, html);
   });
   await test.step('opaque tag attributes', async () => {
-    const html = `<script data-test="{{'Pass!'}}"></script>`;
+    const html = `<script data-test="{{'Pass!'}}" data-test2="1{{2}}3"></script>`;
     const output = await hypermore.render(html);
-    assertEquals(output, `<script data-test="Pass!"></script>`);
+    assertEquals(
+      output,
+      `<script data-test="Pass!" data-test2="123"></script>`
+    );
   });
   await test.step('html comment', async () => {
     const html = `<!-- comment -->`;

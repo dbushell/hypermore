@@ -1,6 +1,5 @@
-import type {Environment, HyperTag, JSONValue, Props} from './types.ts';
-import {evaluateContext} from './evaluate.ts';
-import {Node} from './parse.ts';
+import type {Environment, HyperTag, Node} from './types.ts';
+import {addVars} from './environment.ts';
 import {isVariable} from './utils.ts';
 
 const tagName = 'ssr-for';
@@ -30,47 +29,20 @@ const validate = (node: Node): boolean => {
   return true;
 };
 
-const render = async (node: Node, env: Environment): Promise<string> => {
-  const itemProp = node.attributes.get('item')!;
-  const indexProp = node.attributes.get('index');
-
-  // Parse "of" attribute
+const render = async (node: Node, env: Environment): Promise<void> => {
+  const item = node.attributes.get('item')!;
+  const index = node.attributes.get('index');
   const expression = node.attributes.get('of')!;
-  let items = await evaluateContext(expression, env);
-
-  // Convert string to numeric value
-  if (typeof items === 'string') {
-    const parseItems = Number.parseInt(items);
-    if (isNaN(parseItems) === false) items = parseItems;
+  addVars({__ITEMS: `{{${expression}}}`}, [], env, true, false);
+  env.code += `for (const [__INDEX, __ITEM] of [...__FOR_ITEMS(__ITEMS)].entries()) {\n`;
+  env.code += `const ${item} = __ITEM;\n`;
+  if (index) env.code += `const ${index} = __INDEX;\n`;
+  env.uuid = '__INDEX';
+  for (const child of node.children) {
+    await env.ctx.renderNode(child, env);
   }
-
-  // Convert number to array, e.g. "5" iterates [0,1,2,3,4]
-  if (typeof items === 'number') {
-    items = [...Array(items).keys()];
-  }
-
-  // @ts-ignore ensure items is iterable
-  if (typeof items[Symbol.iterator] !== 'function') {
-    console.warn(`<ssr-for> invalid "of" property (not iterable)`);
-    return '';
-  }
-
-  // Move <ssr-for> children into template
-  const template = new Node(null, 'INVISIBLE');
-  template.append(...node.children);
-
-  // Render each item with individual props
-  let out = '';
-  for (const [i, item] of [...(items as Iterable<JSONValue>)].entries()) {
-    const props = {...env.localProps.at(-1), [itemProp]: item} as Props;
-    const clone = template.clone();
-    node.append(clone);
-    for (const child of clone.children) {
-      if (indexProp) props[indexProp] = i;
-      out += (await env.ctx.renderNode(child, env, props)) ?? '';
-    }
-  }
-  return out;
+  env.uuid = undefined;
+  env.code += `}\n`;
 };
 
 const Tag: HyperTag = {

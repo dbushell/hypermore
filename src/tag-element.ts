@@ -1,5 +1,5 @@
-import type {Environment, HyperTag, Node} from './types.ts';
-import {evaluateText} from './evaluate.ts';
+import type {Environment, HyperTag} from './types.ts';
+import {Node} from './parse.ts';
 
 const tagName = 'ssr-element';
 
@@ -14,15 +14,17 @@ const validate = (node: Node): boolean => {
   return true;
 };
 
-const render = async (node: Node, env: Environment): Promise<string> => {
-  let tag = node.attributes.get('tag')!;
-  [tag] = await evaluateText(tag, env);
-  let attributes = node.attributes.toString();
-  attributes = attributes.replace(/\s*tag="[^"]+"\s*/, ' ');
-  let out = `<${(tag + attributes).trim()}>`;
-  out += await env.ctx.renderChildren(node, env);
-  out += `</${tag}>`;
-  return out;
+const render = async (node: Node, env: Environment): Promise<void> => {
+  // Create new node from tag attribute
+  const tag = node.attributes.get('tag')!;
+  const raw = node.raw.replace('<ssr-element', `<${tag}`);
+  const newNode = new Node(null, 'ELEMENT', raw, tag, node.attributes);
+  newNode.attributes.delete('tag');
+  // Move children to new node
+  for (const child of [...node.children]) {
+    newNode.append(child);
+  }
+  await env.ctx.renderNode(newNode, env);
 };
 
 const Tag: HyperTag = {

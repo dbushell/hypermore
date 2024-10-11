@@ -1,5 +1,5 @@
 import type {Environment, HyperTag} from './types.ts';
-import {evaluateContext} from './evaluate.ts';
+import {addVars} from './environment.ts';
 import {Node} from './parse.ts';
 
 const tagName = 'ssr-if';
@@ -19,7 +19,7 @@ const validate = (node: Node): boolean => {
   return true;
 };
 
-const render = async (node: Node, env: Environment): Promise<string> => {
+const render = async (node: Node, env: Environment): Promise<void> => {
   // First <ssr-if> condition
   const expression = node.attributes.get('condition')!;
 
@@ -30,7 +30,7 @@ const render = async (node: Node, env: Environment): Promise<string> => {
   // <ssr-else> and <ssr-elseif> are added as new conditions
   // All other nodes are appended to the last condition
   for (const child of [...node.children]) {
-    child.detach();
+    // child.detach();
     if (child.tag === 'ssr-else') {
       conditions.push({
         expression: 'true',
@@ -54,17 +54,28 @@ const render = async (node: Node, env: Environment): Promise<string> => {
     conditions.at(-1)?.statement.append(child);
   }
 
-  // Render first matching condition
-  for (const {expression, statement} of conditions) {
-    const result = await evaluateContext(expression, env);
-    if (Boolean(result) === false) continue;
-    node.replace(statement);
-    return env.ctx.renderChildren(statement, env);
+  // Add callbacks to render statements
+  for (let i = 0; i < conditions.length; i++) {
+    const {expression, statement} = conditions[i];
+    env.code += `const __S${i} = () => {\n`;
+    await env.ctx.renderChildren(statement, env);
+    env.code += `}\n`;
+    addVars({[`__C${i}`]: `{{${expression}}}`}, [], env, true, false);
   }
 
-  // No matches
-  node.detach();
-  return '';
+  for (let i = 0; i < conditions.length; i++) {
+    // Alternate conditions
+    if (i === 0) {
+      env.code += `if (__C${i}) {\n`;
+    } else if (i < conditions.length - 1) {
+      env.code += `} else if (__C${i}) {\n`;
+    } else {
+      env.code += `} else {\n`;
+    }
+    env.code += `__S${i}();\n`;
+  }
+  // Close final statement
+  env.code += '}\n';
 };
 
 const Tag: HyperTag = {

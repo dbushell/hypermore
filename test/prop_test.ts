@@ -111,4 +111,11 @@ Deno.test('props', async (test) => {
     );
     assertEquals(output, `<h1>Pass!</h1><h2>Pass!</h2>`);
   });
+  await test.step('duplicate props name', async () => {
+    hypermore.setTemplate('my-h3', `<h3 id="{{id}}">{{id}}</h3>`);
+    const output = await hypermore.render(`<my-h3 id="{{id}}">`, {
+      id: 'Pass!'
+    });
+    assertEquals(output, `<h3 id="Pass!">Pass!</h3>`);
+  });
 });
