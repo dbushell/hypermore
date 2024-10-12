@@ -137,7 +137,7 @@ export const addVars = (
         }
       }
     }
-    // Validate prop  name
+    // Validate prop name
     if (check) {
       key = toCamelCase(key);
       if (reservedProps.has(key)) {
