@@ -53,7 +53,7 @@ export class Hypermore {
    */
   setTemplate(name: string, html: string): void {
     if (tagComponent.match(name) === false) {
-      throw new Error(`invalid template name`);
+      throw new Error(`Invalid template name: "${name}"`);
     }
     const node = parseHTML(html, {
       rootTag: /^\w+$/.test(name) ? name : undefined,
