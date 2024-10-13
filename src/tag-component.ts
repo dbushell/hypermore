@@ -31,7 +31,6 @@ const render = async (node: Node, env: Environment): Promise<void> => {
   // Clone the component
   const template = env.ctx.cloneTemplate(node.tag, env)!;
   template.type = "INVISIBLE";
-  template.raw = node.tag;
   components.add(template);
 
   const slots = new Map<string, Node>();
@@ -41,7 +40,6 @@ const render = async (node: Node, env: Environment): Promise<void> => {
 
   // Find all slots in component template
   template.traverse((n) => {
-    if (match(n)) return false;
     if (n.tag !== "ssr-slot") return;
     const name = n.attributes.get("name");
     slots.set(name ?? "default", n);
