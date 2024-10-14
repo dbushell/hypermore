@@ -1,5 +1,5 @@
 import type { Environment, JSONObject, JSONValue } from "./types.ts";
-import { escapeChars, reservedProps, toCamelCase } from "./utils.ts";
+import { escapeChars } from "./utils.ts";
 
 export const envHeader = `
 let __EXPORT = "";
@@ -21,7 +21,7 @@ const __ESC = (value, escape) => {
 const __ATTRIBUTES = (attr) => {
   let newAttr = [];
   attr.forEach((v, k) => {
-    if (v === "undefined" || v === "null") return;
+    if (v === undefined || v === null) return;
     if (v === "") {
       newAttr.push(k);
     } else {
@@ -119,12 +119,18 @@ export const encodeVars = (value: JSONValue, parse = false): string => {
       return `${value}`;
     case "string":
       value = `\`${escapeChars(value)}\``;
-      return parse ? parseVars(value, false) : value;
+      if (parse) {
+        value = parseVars(value, false);
+        // Remove empty string at start and end of value
+        if (value.startsWith("``+")) value = value.substring(3);
+        if (value.endsWith("+``")) value = value.substring(0, value.length - 3);
+      }
+      return value;
     case "object": {
       // Do not attempt to parse objects
       return `{${
         Object.entries(value)
-          .map(([k, v]) => `'${k}':${encodeVars(v, false)}`)
+          .map(([k, v]) => `'${k}':${encodeVars(v, parse)}`)
           .join(",")
       }}`;
     }
@@ -137,7 +143,6 @@ export const addVars = (
   prevProps: Array<JSONObject> = [],
   env: Environment,
   parse = true,
-  check = true,
 ): JSONObject => {
   const updated: JSONObject = {};
   for (let [key, value] of Object.entries(props)) {
@@ -150,20 +155,8 @@ export const addVars = (
         }
       }
     }
-    // Validate prop name
-    if (check) {
-      key = toCamelCase(key);
-      if (reservedProps.has(key)) {
-        console.warn(`invalid prop "${key}" is reserved`);
-        continue;
-      }
-    }
-    // Encode value
+    // Encode and render output
     value = encodeVars(value, parse);
-    // Unwrap single expressions from string
-    const match = value.match(/^``\+(__ESC\(.*\))\+``$/);
-    if (match) value = match[1];
-    // Render output
     if (Object.hasOwn(updated, key) === false) env.code += `let `;
     env.code += `${key} = ${value};\n`;
   }

@@ -16,7 +16,7 @@ export const specialTags = new Set([
 export const renderTypes = new Set(["ELEMENT", "OPAQUE", "VOID"]);
 
 /** Reserved property names */
-export const reservedProps = new Set(["globalProps"]);
+export const reservedProps = new Set(["$global", "$local"]);
 
 /** Returns true if name is valid variable */
 export const isVariable = (name: string): boolean => {
@@ -33,7 +33,7 @@ export const componentName = (path: string | URL): string => {
 };
 
 /** Escape characters for Javascript string template */
-export const escapeChars = (str: string, chars = ["`", "$"]): string => {
+export const escapeChars = (str: string, chars = ["`", "${"]): string => {
   str = str.replace(/\\/g, "\\\\");
   for (const c of chars) str = str.replaceAll(c, "\\" + c);
   return str;

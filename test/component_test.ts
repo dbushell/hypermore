@@ -34,7 +34,7 @@ Deno.test("components", async (test) => {
     assertEquals(output, `<div><main>Pass!</main></div>`);
   });
   await test.step("unknown import", async () => {
-    const html = `<div><my-unknown>{{globalProps.number}}</my-unknown></div>`;
+    const html = `<div><my-unknown>{{$global.number}}</my-unknown></div>`;
     const output = await hypermore.render(html);
     assertEquals(
       output,
@@ -45,7 +45,7 @@ Deno.test("components", async (test) => {
     const html =
       `<loop-slot>1<loop-slot>2<loop-slot>3</loop-slot></loop-slot></loop-slot>`;
     const output = await hypermore.render(html);
-    assertEquals(output, `1`);
+    assertEquals(output, `123`);
     assertEquals(warn.stack.pop(), ["<loop-slot> infinite nested loop"]);
   });
   warn.release();

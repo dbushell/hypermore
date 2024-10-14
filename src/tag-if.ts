@@ -59,7 +59,7 @@ const render = async (node: Node, env: Environment): Promise<void> => {
     env.code += `const __S${i} = () => {\n`;
     await env.ctx.renderChildren(statement, env);
     env.code += `}\n`;
-    addVars({ [`__C${i}`]: `{{${expression}}}` }, [], env, true, false);
+    addVars({ [`__C${i}`]: `{{${expression}}}` }, [], env, true);
   }
 
   for (let i = 0; i < conditions.length; i++) {

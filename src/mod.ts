@@ -8,12 +8,19 @@ import {
   parseVars,
   renderEnv,
 } from "./environment.ts";
-import { escapeChars, renderTypes, specialTags } from "./utils.ts";
+import {
+  escapeChars,
+  renderTypes,
+  reservedProps,
+  specialTags,
+  toCamelCase,
+} from "./utils.ts";
 import tagIf from "./tag-if.ts";
 import tagFor from "./tag-for.ts";
 import tagHtml from "./tag-html.ts";
 import tagScript from "./tag-script.ts";
 import tagElement from "./tag-element.ts";
+import tagFragment from "./tag-fragment.ts";
 import tagComponent from "./tag-component.ts";
 
 /** Hypermore class */
@@ -91,7 +98,7 @@ export class Hypermore {
       portals: new Map(),
     };
     // Add global props object
-    addVars({ globalProps: this.#globalProps }, [], env, false, false);
+    addVars({ $global: this.#globalProps }, [], env, false);
     // Add destructured global props
     addVars(this.#globalProps, [], env, false);
     // Parse and validate template node
@@ -153,11 +160,8 @@ export class Hypermore {
           remove.add(node);
         }
       }
-      if (node.tag === "ssr-fragment") {
-        const slot = node.attributes.get("slot");
-        const portal = node.attributes.get("portal");
-        if (slot === undefined && portal === undefined) {
-          console.warn(`<ssr-fragment> missing "slot" or "portal" property`);
+      if (tagFragment.match(node)) {
+        if (tagFragment.validate(node, env) === false) {
           remove.add(node);
         }
       }
@@ -189,110 +193,109 @@ export class Hypermore {
   async renderNode(
     node: Node,
     env: Environment,
-    props?: JSONObject,
+    props: JSONObject = {},
     script?: string,
   ): Promise<void> {
     env.node = node;
     // Start nested block scope
     env.code += "{\n";
-    // Stack new props
-    let updatedProps: JSONObject | undefined;
-    if (props) {
-      updatedProps = addVars(props, env.localProps, env);
-      env.localProps.push(props);
+    // Validate new props
+    const newProps: JSONObject = {};
+    for (let [key, value] of Object.entries(props)) {
+      key = toCamelCase(key);
+      if (reservedProps.has(key)) {
+        console.warn(`invalid prop "${key}" is reserved`);
+      } else {
+        newProps[key] = value;
+      }
     }
+    if (Object.keys(props).length) {
+      /** @todo rename to `$props`? */
+      newProps.$local = { ...newProps };
+    }
+    // Update props stack
+    const updatedProps = addVars(newProps, env.localProps, env);
+    env.localProps.push(newProps);
+    // Append exports
     if (script) {
       env.code += script + "\n";
     }
-    // Wrap return to unstack new props
-    const out = (value = ""): void => {
-      if (value.length) env.code += `__EXPORT += \`${value}\`;\n`;
-      // End nested block scope;
-      env.code += "}\n";
-      // Reset prop values
-      if (props) {
-        if (updatedProps && Object.keys(updatedProps).length) {
-          addVars(updatedProps, env.localProps, env);
-        }
-        env.localProps.pop();
-      }
-    };
-    switch (node.type) {
+    render: switch (node.type) {
       case "COMMENT":
-        return out(node.raw);
+        env.code += `__EXPORT += \`${escapeChars(node.raw)}\`;\n`;
+        break render;
       case "OPAQUE":
         await this.renderParent(node, env);
-        return out();
+        break render;
       case "ROOT":
         await this.renderChildren(node, env);
-        return out();
+        break render;
       case "STRAY":
         console.warn(`stray closing tag "${node.tag}"`);
-        return out();
+        break render;
       case "TEXT": {
-        if (node.raw.length === 0) return out();
-        if (/^\s*$/.test(node.raw)) {
-          return out(node.raw.indexOf("\n") > -1 ? "\n" : " ");
+        if (node.raw.length === 0) break render;
+        let text = node.raw;
+        if (/^\s*$/.test(text)) {
+          text = text.indexOf("\n") > -1 ? "\n" : " ";
+        } else {
+          if (env.ctx.autoEscape) text = escapeChars(text);
+          text = parseVars(text, env.ctx.autoEscape);
         }
-        return out(parseVars(node.raw, env.ctx.autoEscape));
+        env.code += `__EXPORT += \`${text}\`;\n`;
+        break render;
       }
       case "ELEMENT":
       case "VOID":
         if (tagComponent.match(node)) {
           await tagComponent.render(node, env);
-          return out();
+          break render;
         }
         await this.renderParent(node, env);
-        return out();
+        break render;
       case "INVISIBLE":
         switch (node.tag) {
           case "ssr-script":
             console.warn(`<ssr-script> unknown`);
-            return out();
+            break render;
           case "ssr-else":
             console.warn(`<ssr-else> outside of <ssr-if>`);
-            return out();
+            break render;
           case "ssr-elseif":
             console.warn(`<ssr-elseif> outside of <ssr-if>`);
-            return out();
+            break render;
           case "ssr-if":
             await tagIf.render(node, env);
-            return out();
+            break render;
           case "ssr-for":
             await tagFor.render(node, env);
-            return out();
+            break render;
           case "ssr-html":
             await tagHtml.render(node, env);
-            return out();
+            break render;
           case "ssr-element":
             await tagElement.render(node, env);
-            return out();
-          case "ssr-fragment": {
-            const portal = node.attributes.get("portal");
-            if (portal) {
-              env.code += `const __TMP = __EXPORT;\n`;
-              env.code +=
-                `__FRAGMENTS.add({portal: '${portal}', html: (() => {\n`;
-              env.code += `let __EXPORT = '';\n`;
-              await this.renderChildren(node, env);
-              env.code += `return __EXPORT;\n`;
-              env.code += `})()});\n`;
-              env.code += `__EXPORT = __TMP;\n`;
-            } else {
-              console.warn(`<ssr-fragment> unknown`);
-            }
-            return out();
-          }
+            break render;
+          case "ssr-fragment":
+            await tagFragment.render(node, env);
+            break render;
           case "ssr-slot":
             await this.renderChildren(node, env);
-            return out();
+            break render;
           case "ssr-portal":
             await this.renderChildren(node, env);
-            return out();
+            break render;
         }
         await this.renderParent(node, env);
-        return out();
+        break render;
     }
+    // End nested block scope
+    env.code += "}\n";
+    // Reset prop values and stack
+    if (updatedProps && Object.keys(updatedProps).length) {
+      addVars(updatedProps, env.localProps, env);
+    }
+    env.localProps.pop();
   }
 
   /**
@@ -328,7 +331,10 @@ export class Hypermore {
         code += `__REPLACE.set(\`${id}\`, __ATTRIBUTES(attr));\n}\n`;
         env.code += code;
       }
+      const autoEscape = env.ctx.autoEscape;
+      env.ctx.autoEscape = false;
       await this.renderNode(new Node(null, "TEXT", tagOpen), env);
+      env.ctx.autoEscape = autoEscape;
     }
     if (node.type === "OPAQUE") {
       const out = node.children.map((n) => n.toString()).join("");

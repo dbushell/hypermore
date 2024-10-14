@@ -37,7 +37,7 @@ Deno.exit(1);
     );
   });
   await test.step("html comment", async () => {
-    const html = `<!-- comment -->`;
+    const html = `<!-- comment \`test\` -->`;
     const output = await hypermore.render(html);
     assertEquals(output, html);
   });
@@ -61,5 +61,15 @@ Deno.exit(1);
       html: "<script>console.log(`1`,`2`,${a});</script>",
     });
     assertEquals(output, "<script>console.log(`1`,`2`,${a});</script>");
+  });
+  await test.step("text node", async () => {
+    const html = "test `test ${test} {{'te`st'}}";
+    const output = await hypermore.render(html);
+    assertEquals(output, "test `test ${test} te`st");
+  });
+  await test.step("code element", async () => {
+    const html = "<code>`test` ${code} {{code}}</code>";
+    const output = await hypermore.render(html);
+    assertEquals(output, html);
   });
 });

@@ -52,5 +52,5 @@ await hypermore.render(`<my-component />`);
 // "777"
 await hypermore.render(`<my-component number="777" />`);
 // "42"
-await hypermore.render(`<my-component number="{{globalProps.number}}" />`);
+await hypermore.render(`<my-component number="{{$global.number}}" />`);
 ```

@@ -1,9 +1,17 @@
-import type { Environment, HyperTag, Node } from "./types.ts";
+import { Node } from "./parse.ts";
+import type { Environment, HyperTag } from "./types.ts";
 
 /** Cache of cloned templates */
 const components = new WeakSet<Node>();
 
+const componentTypes = new Set(["ELEMENT", "VOID"]);
+
 const match = (node: string | Node): boolean => {
+  if (node instanceof Node) {
+    if (componentTypes.has(node.type) === false) {
+      return false;
+    }
+  }
   const tagName = typeof node === "string" ? node : node.tag;
   // Disallow reserved prefix
   if (tagName.startsWith("ssr-")) return false;
@@ -45,6 +53,17 @@ const render = async (node: Node, env: Environment): Promise<void> => {
     slots.set(name ?? "default", n);
   });
 
+  // Avoid infinite loops
+  const nested = new Set<Node>();
+  template.traverse((n) => {
+    if (n.tag === "ssr-if" || n.tag === "ssr-for") return false;
+    if (n.tag === node.tag) nested.add(n);
+  });
+  if (nested.size) {
+    nested.forEach((n) => n.detach());
+    console.warn(`<${node.tag}> infinite nested loop`);
+  }
+
   // Find fragments and assign their children to slot
   node.traverse((n) => {
     if (match(n)) return false;
@@ -72,17 +91,6 @@ const render = async (node: Node, env: Environment): Promise<void> => {
       slot.clear();
     }
     slot.append(target);
-  }
-
-  // Avoid infinite loops
-  const nested = new Set<Node>();
-  template.traverse((n) => {
-    if (n.tag === "ssr-if" || n.tag === "ssr-for") return false;
-    if (n.tag === node.tag) nested.add(n);
-  });
-  if (nested.size) {
-    nested.forEach((n) => n.detach());
-    console.warn(`<${node.tag}> infinite nested loop`);
   }
 
   // Find component script that can return props

@@ -22,18 +22,18 @@ Deno.test("<ssr-if> tag", async (test) => {
     assertEquals(warn.stack.pop(), ['<ssr-if> missing "condition" property']);
   });
   await test.step("true condition", async () => {
-    const html = `<ssr-if condition="globalProps.number === 42">Pass!</if>`;
+    const html = `<ssr-if condition="$global.number === 42">Pass!</if>`;
     const output = await hypermore.render(html);
     assertEquals(output, "Pass!");
   });
   await test.step("false condition", async () => {
-    const html = `<ssr-if condition="globalProps.number === 22">Fail!</if>`;
+    const html = `<ssr-if condition="$global.number === 22">Fail!</if>`;
     const output = await hypermore.render(html);
     assertEquals(output, "");
   });
   await test.step("<ssr-else> condition", async () => {
     const html = `
-<ssr-if condition="globalProps.number === 22">
+<ssr-if condition="$global.number === 22">
   Fail!
 <ssr-else>
   Pass!
@@ -43,11 +43,11 @@ Deno.test("<ssr-if> tag", async (test) => {
   });
   await test.step("<ssr-elseif> condition", async () => {
     const html = `
-<ssr-if condition="globalProps.number === 22">
+<ssr-if condition="$global.number === 22">
   Fail 1
-<ssr-elseif condition="globalProps.number === 32">
+<ssr-elseif condition="$global.number === 32">
   Fail 2
-<ssr-elseif condition="globalProps.number === 42">
+<ssr-elseif condition="$global.number === 42">
   Pass!
 <ssr-else>
   Fail 3
@@ -57,9 +57,9 @@ Deno.test("<ssr-if> tag", async (test) => {
   });
   await test.step("<ssr-elseif> <ssr-else> condition", async () => {
     const html = `
-<ssr-if condition="globalProps.number === 22">
+<ssr-if condition="$global.number === 22">
   Fail 1
-<ssr-elseif condition="globalProps.number === 32">
+<ssr-elseif condition="$global.number === 32">
   Fail 2
 <ssr-else>
   Pass!

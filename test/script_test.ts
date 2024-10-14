@@ -17,20 +17,8 @@ date = \`\${year}, \${month}, \${day}\`;
 hypermore.setTemplate(
   "my-default",
   `<ssr-script context="component">
-
 const heading = 'Heading';
 const description = 'Description';
-
-// return {
-//   defaultProps: {
-//     heading: 'Heading',
-//     description: 'Fail!',
-//     end: 'Fail!'
-//   },
-//   localProps: {
-//     description: 'Description'
-//   }
-// };
 </ssr-script>
 {{heading}} {{description}} {{end}}
 `,

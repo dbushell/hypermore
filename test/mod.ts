@@ -9,7 +9,6 @@ const entities = new Map([
 ]);
 
 export const globalProps = {
-  tag: "h1",
   number: 42,
   entities: [...entities.keys()].join(""),
   encodedEntities: [...entities.values()].join(""),

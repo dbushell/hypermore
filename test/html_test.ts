@@ -3,7 +3,7 @@ import { globalProps, hypermore, warn } from "./mod.ts";
 
 Deno.test("<ssr-html> tag", async (test) => {
   await test.step("unescaped variable", async () => {
-    const html = `<ssr-html>{{globalProps.entities}}</ssr-html>`;
+    const html = `<ssr-html>{{$global.entities}}</ssr-html>`;
     const output = await hypermore.render(html);
     assertEquals(output, globalProps.entities);
   });
@@ -14,7 +14,7 @@ Deno.test("<ssr-html> tag", async (test) => {
   });
   await test.step("unrendered <ssr-if>", async () => {
     const html =
-      `<ssr-html><ssr-if condition="true">{{globalProps.entities}}</ssr-if></ssr-html>`;
+      `<ssr-html><ssr-if condition="true">{{$global.entities}}</ssr-if></ssr-html>`;
     const output = await hypermore.render(html);
     assertEquals(
       output,
@@ -23,7 +23,7 @@ Deno.test("<ssr-html> tag", async (test) => {
   });
   await test.step("unrendered <ssr-fragment>", async () => {
     const html =
-      `<ssr-html><ssr-fragment portal="head">{{globalProps.entities}}</ssr-fragment></ssr-html>`;
+      `<ssr-html><ssr-fragment portal="head">{{$global.entities}}</ssr-fragment></ssr-html>`;
     const output = await hypermore.render(html);
     assertEquals(
       output,

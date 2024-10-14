@@ -33,7 +33,7 @@ const render = async (node: Node, env: Environment): Promise<void> => {
   const item = node.attributes.get("item")!;
   const index = node.attributes.get("index");
   const expression = node.attributes.get("of")!;
-  addVars({ __ITEMS: `{{${expression}}}` }, [], env, true, false);
+  addVars({ __ITEMS: `{{${expression}}}` }, [], env, true);
   env.code +=
     `for (const [__INDEX, __ITEM] of [...__FOR_ITEMS(__ITEMS)].entries()) {\n`;
   env.code += `const ${item} = __ITEM;\n`;
