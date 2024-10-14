@@ -2,12 +2,13 @@ import type { Environment, JSONObject, Options } from "./types.ts";
 import { Node, parseHTML } from "./parse.ts";
 import {
   addVars,
+  encodeVars,
   envFooter,
   envHeader,
   parseVars,
   renderEnv,
 } from "./environment.ts";
-import { escapeChars, specialTags } from "./utils.ts";
+import { escapeChars, renderTypes, specialTags } from "./utils.ts";
 import tagIf from "./tag-if.ts";
 import tagFor from "./tag-for.ts";
 import tagHtml from "./tag-html.ts";
@@ -311,22 +312,32 @@ export class Hypermore {
    * @returns HTML string
    */
   async renderParent(node: Node, env: Environment): Promise<void> {
-    // Evaluate attributes
-    for (let [key, value] of node.attributes) {
-      if (value.indexOf("{{") === -1) continue;
-      let id = crypto.randomUUID();
-      if (env.uuid) id = `\${${env.uuid}}-${id}`;
-      value = parseVars(value, env.ctx.autoEscape);
-      env.code += `__REPLACE.set(\`${id}\`, \`${value}\`);\n`;
-      node.attributes.set(key, id);
+    if (renderTypes.has(node.type)) {
+      let tagOpen = node.tagOpen;
+      // Parse attributes
+      if (node.attributes.size) {
+        let id = crypto.randomUUID();
+        if (env.uuid) id = `\${${env.uuid}}-${id}`;
+        tagOpen = `<${node.tag}${id}`;
+        tagOpen += node.type === "VOID" ? "/>" : ">";
+        let code = `{\nconst attr = new Map();\n`;
+        for (let [key, value] of node.attributes) {
+          value = encodeVars(value, true);
+          code += `try { attr.set('${key}', ${value}); } catch {}\n`;
+        }
+        code += `__REPLACE.set(\`${id}\`, __ATTRIBUTES(attr));\n}\n`;
+        env.code += code;
+      }
+      await this.renderNode(new Node(null, "TEXT", tagOpen), env);
     }
     if (node.type === "OPAQUE") {
-      env.code += `__EXPORT += \`${escapeChars(node.toString())}\`;\n`;
-      return;
+      const out = node.children.map((n) => n.toString()).join("");
+      env.code += `__EXPORT += \`${escapeChars(out)}\`;\n`;
+    } else {
+      await this.renderChildren(node, env);
     }
-    // Render children between
-    await this.renderNode(new Node(null, "TEXT", node.tagOpen), env);
-    await this.renderChildren(node, env);
-    await this.renderNode(new Node(null, "TEXT", node.tagClose), env);
+    if (renderTypes.has(node.type)) {
+      await this.renderNode(new Node(null, "TEXT", node.tagClose), env);
+    }
   }
 }

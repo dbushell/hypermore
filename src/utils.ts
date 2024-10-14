@@ -12,6 +12,9 @@ export const specialTags = new Set([
   "ssr-script",
 ]);
 
+/** Node has open/close tags */
+export const renderTypes = new Set(["ELEMENT", "OPAQUE", "VOID"]);
+
 /** Reserved property names */
 export const reservedProps = new Set(["globalProps"]);
 

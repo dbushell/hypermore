@@ -2,36 +2,49 @@ import type { Environment, JSONObject, JSONValue } from "./types.ts";
 import { escapeChars, reservedProps, toCamelCase } from "./utils.ts";
 
 export const envHeader = `
-let __EXPORT = '';
+let __EXPORT = "";
 const __REPLACE = new Map();
 const __PORTALS = new Map();
 const __FRAGMENTS = new Set();
 const __ENTITIES = new Map([
-  ['&', '&amp;'],
-  ['<', '&lt;'],
-  ['>', '&gt;'],
-  ['"', '&quot;'],
-  ["'", '&#39;']
+  ["&", "&amp;"],
+  ["<", "&lt;"],
+  [">", "&gt;"],
+  ['"', "&quot;"],
+  ["'", "&#39;"],
 ]);
-const __ENTITY_KEYS = new RegExp([...__ENTITIES.keys()].join('|'), 'g');
+const __ENTITY_KEYS = new RegExp([...__ENTITIES.keys()].join("|"), "g");
 const __ESC = (value, escape) => {
   if (escape === false) return value;
   return String(value).replaceAll(__ENTITY_KEYS, (k) => __ENTITIES.get(k));
 };
+const __ATTRIBUTES = (attr) => {
+  let newAttr = [];
+  attr.forEach((v, k) => {
+    if (v === "undefined" || v === "null") return;
+    if (v === "") {
+      newAttr.push(k);
+    } else {
+      v = __ESC(v, true);
+      newAttr.push(v.indexOf('"') === -1 ? \`\${k}="\${v}"\` : \`\${k}='\${v}'\`);
+    }
+  });
+  return newAttr.length ? " " + newAttr.join(" ") : "";
+};
 const __FOR_ITEMS = (items) => {
   // Convert string to numeric value
-  if (typeof items === 'string') {
+  if (typeof items === "string") {
     const parseItems = Number.parseInt(items);
     if (isNaN(parseItems) === false) {
       items = parseItems;
     }
   }
   // Convert number to array, e.g. "5" iterates [0,1,2,3,4]
-  if (typeof items === 'number') {
+  if (typeof items === "number") {
     return [...Array(items).keys()];
   }
   // Ensure items is iterable
-  if (typeof items[Symbol.iterator] !== 'function') {
+  if (typeof items[Symbol.iterator] !== "function") {
     console.warn('<ssr-for> invalid "of" property (not iterable)');
     return [];
   }
@@ -44,12 +57,12 @@ const _FRAGMENT_VALUES = [...__FRAGMENTS.values()];
 for (const [name, comment] of __PORTALS) {
   __EXPORT = __EXPORT.replace(comment, () => {
     return _FRAGMENT_VALUES
-      .map(({html, portal}) => (portal === name ? html : ''))
-      .join('');
+      .map(({ html, portal }) => (portal === name ? html : ""))
+      .join("");
   });
 }
 __REPLACE.forEach((v, k) => {
-  __EXPORT = __EXPORT.replace(k, () => v);
+  __EXPORT = __EXPORT.replace(k, () => typeof v === "function" ? v() : v);
 });
 return __EXPORT;
 `;
