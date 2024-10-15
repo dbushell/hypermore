@@ -22,6 +22,7 @@ import tagScript from "./tag-script.ts";
 import tagElement from "./tag-element.ts";
 import tagFragment from "./tag-fragment.ts";
 import tagComponent from "./tag-component.ts";
+import tagCache, { getCacheMap } from "./tag-cache.ts";
 
 /** Hypermore class */
 export class Hypermore {
@@ -96,6 +97,7 @@ export class Hypermore {
       node: undefined,
       localProps: [],
       portals: new Map(),
+      caches: new Map(),
     };
     // Add global props object
     addVars({ $global: this.#globalProps }, [], env, false);
@@ -117,7 +119,20 @@ export class Hypermore {
     } catch (err) {
       console.error(err);
     }
-    return result.trim();
+    result = result.trim();
+    // Extract cache element for later renders
+    if (env.caches.size) {
+      const map = getCacheMap(this);
+      for (const [name, id] of env.caches) {
+        const parts = result.split(`<!--[${id}]-->`);
+        if (parts.length !== 3) {
+          console.warn(`<ssr-cache name="${name}"> failed`);
+          continue;
+        }
+        map.set(name, parts[1]);
+      }
+    }
+    return result;
   }
 
   /**
@@ -138,6 +153,11 @@ export class Hypermore {
           remove.add(node);
         }
         return false;
+      }
+      if (tagCache.match(node)) {
+        if (tagCache.validate(node, env) === false) {
+          remove.add(node);
+        }
       }
       if (tagScript.match(node)) {
         tagScript.validate(node, env);
@@ -210,7 +230,6 @@ export class Hypermore {
       }
     }
     if (Object.keys(props).length) {
-      /** @todo rename to `$props`? */
       newProps.$local = { ...newProps };
     }
     // Update props stack
@@ -272,6 +291,9 @@ export class Hypermore {
             break render;
           case "ssr-html":
             await tagHtml.render(node, env);
+            break render;
+          case "ssr-cache":
+            await tagCache.render(node, env);
             break render;
           case "ssr-element":
             await tagElement.render(node, env);

@@ -10,6 +10,7 @@ export const specialTags = new Set([
   "ssr-slot",
   "ssr-portal",
   "ssr-script",
+  "ssr-cache",
 ]);
 
 /** Node has open/close tags */

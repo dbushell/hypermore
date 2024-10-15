@@ -1,5 +1,5 @@
-import { Node } from "./parse.ts";
 import type { Environment, HyperTag } from "./types.ts";
+import { Node } from "./parse.ts";
 
 /** Cache of cloned templates */
 const components = new WeakSet<Node>();

@@ -37,6 +37,8 @@ export type Environment = {
   node: Node | undefined;
   /** Discovered portal names and comment placeholders */
   portals: Map<string, string>;
+  /** Cache name and IDs to render and store */
+  caches: Map<string, string>;
   /** Compiled code to evaluate */
   code: string;
   /** Loop index */
