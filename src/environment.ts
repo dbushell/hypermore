@@ -100,7 +100,13 @@ export const parseVars = (text: string, escape = true): string => {
       out += "{";
       text = text.substring(1);
     } else {
-      out += `\`+__ESC(${match[1]}, ${escape})+\``;
+      if (match[1].at(0) === "!") {
+        // Ignore match if escape character was found
+        out += "{{" + match[0].substring(3);
+      } else {
+        // Replace match with render function
+        out += `\`+__ESC(${match[1]}, ${escape})+\``;
+      }
       text = text.substring(match[0].length);
     }
   }
@@ -127,7 +133,6 @@ export const encodeVars = (value: JSONValue, parse = false): string => {
       }
       return value;
     case "object": {
-      // Do not attempt to parse objects
       return `{${
         Object.entries(value)
           .map(([k, v]) => `'${k}':${encodeVars(v, parse)}`)

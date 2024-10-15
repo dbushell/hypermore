@@ -293,6 +293,7 @@ export class Hypermore {
     env.code += "}\n";
     // Reset prop values and stack
     if (updatedProps && Object.keys(updatedProps).length) {
+      delete updatedProps["$local"];
       addVars(updatedProps, env.localProps, env);
     }
     env.localProps.pop();

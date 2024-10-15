@@ -72,4 +72,9 @@ Deno.exit(1);
     const output = await hypermore.render(html);
     assertEquals(output, html);
   });
+  await test.step("text variable escape", async () => {
+    const html = "{{!ignore}} {{! console.error('Fail!); }}";
+    const output = await hypermore.render(html);
+    assertEquals(output, html.replaceAll("{{!", "{{"));
+  });
 });
