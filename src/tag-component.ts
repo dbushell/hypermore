@@ -93,18 +93,18 @@ const render = async (node: Node, env: Environment): Promise<void> => {
     slot.append(target);
   }
 
-  // Find component script that can return props
-  const script = template.find((n) => {
-    return (
-      n.tag === "ssr-script" && n.attributes.get("context") === "component"
-    );
-  });
+  // Find component script
+  let script: Node | undefined;
+  for (const child of template.children) {
+    if (child.tag !== "script") continue;
+    if (child.attributes.get("context") !== "component") continue;
+    script = child;
+    break;
+  }
   let code = "";
   if (script) {
     script.detach();
     code = script.at(0)!.raw;
-    code = code.replace(/^\s*<script([^>]*>)/, "");
-    code = code.replace(/<\/script>\s*/, "");
   }
 
   const props = Object.fromEntries(node.attributes);

@@ -13,7 +13,6 @@ import tagIf from "./tag-if.ts";
 import tagFor from "./tag-for.ts";
 import tagHtml from "./tag-html.ts";
 import tagPortal from "./tag-portal.ts";
-import tagScript from "./tag-script.ts";
 import tagElement from "./tag-element.ts";
 import tagFragment from "./tag-fragment.ts";
 import tagComponent from "./tag-component.ts";
@@ -30,7 +29,6 @@ export const customTags = new Set([
   "ssr-html",
   "ssr-if",
   "ssr-portal",
-  "ssr-script",
   "ssr-slot",
 ]);
 
@@ -43,7 +41,6 @@ const customExtensions = [
   tagHtml,
   tagIf,
   tagPortal,
-  tagScript,
 ];
 
 /** Node types have open and close tags */
@@ -263,9 +260,6 @@ export class Hypermore {
         break render;
       case "INVISIBLE":
         switch (node.tag) {
-          case "ssr-script":
-            console.warn(`<ssr-script> unknown`);
-            break render;
           case "ssr-else":
             console.warn(`<ssr-else> outside of <ssr-if>`);
             break render;

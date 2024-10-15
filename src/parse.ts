@@ -14,7 +14,6 @@ export { escape, inlineTags, Node, unescape };
 const parseOptions = getParseOptions();
 parseOptions.voidTags.add("ssr-else");
 parseOptions.voidTags.add("ssr-elseif");
-parseOptions.opaqueTags.add("ssr-script");
 
 /** Parse HTML text into Node tree */
 export const parseHTML = (
