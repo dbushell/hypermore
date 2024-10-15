@@ -1,24 +1,3 @@
-/** List of tags to never render */
-export const specialTags = new Set([
-  "ssr-else",
-  "ssr-elseif",
-  "ssr-element",
-  "ssr-fragment",
-  "ssr-for",
-  "ssr-html",
-  "ssr-if",
-  "ssr-slot",
-  "ssr-portal",
-  "ssr-script",
-  "ssr-cache",
-]);
-
-/** Node has open/close tags */
-export const renderTypes = new Set(["ELEMENT", "OPAQUE", "VOID"]);
-
-/** Reserved property names */
-export const reservedProps = new Set(["$global", "$local"]);
-
 /** Returns true if name is valid variable */
 export const isVariable = (name: string): boolean => {
   return /^[a-zA-Z_$]\w*$/.test(name);

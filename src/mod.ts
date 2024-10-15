@@ -8,21 +8,49 @@ import {
   parseVars,
   renderEnv,
 } from "./environment.ts";
-import {
-  escapeChars,
-  renderTypes,
-  reservedProps,
-  specialTags,
-  toCamelCase,
-} from "./utils.ts";
+import { escapeChars, toCamelCase } from "./utils.ts";
 import tagIf from "./tag-if.ts";
 import tagFor from "./tag-for.ts";
 import tagHtml from "./tag-html.ts";
+import tagPortal from "./tag-portal.ts";
 import tagScript from "./tag-script.ts";
 import tagElement from "./tag-element.ts";
 import tagFragment from "./tag-fragment.ts";
 import tagComponent from "./tag-component.ts";
 import tagCache, { getCacheMap } from "./tag-cache.ts";
+
+/** List Hypermore tags */
+export const customTags = new Set([
+  "ssr-cache",
+  "ssr-element",
+  "ssr-else",
+  "ssr-elseif",
+  "ssr-for",
+  "ssr-fragment",
+  "ssr-html",
+  "ssr-if",
+  "ssr-portal",
+  "ssr-script",
+  "ssr-slot",
+]);
+
+/** List of Hypermore extensions */
+const customExtensions = [
+  tagCache,
+  tagElement,
+  tagFor,
+  tagFragment,
+  tagHtml,
+  tagIf,
+  tagPortal,
+  tagScript,
+];
+
+/** Node types have open and close tags */
+export const renderTypes = new Set(["ELEMENT", "OPAQUE", "VOID"]);
+
+/** Reserved property names */
+export const reservedProps = new Set(["$global", "$local"]);
 
 /** Hypermore class */
 export class Hypermore {
@@ -143,61 +171,22 @@ export class Hypermore {
     // Track nodes to remove after traversal
     const remove = new Set<Node>();
     root.traverse((node) => {
-      // Flag special tags as invisible for render switch
-      if (specialTags.has(node.tag)) {
+      // Flag custom tags as invisible for render switch
+      if (customTags.has(node.tag)) {
         node.type = "INVISIBLE";
       }
-      // Return false so inner special tags are rendered as elements
+      // Validate custom tags
+      for (const tag of customExtensions) {
+        if (tag.match(node)) {
+          if (tag.validate(node, env) === false) {
+            remove.add(node);
+          }
+          break;
+        }
+      }
+      // Return early so inner tags are ignored
       if (tagHtml.match(node)) {
-        if (tagHtml.validate(node, env) === false) {
-          remove.add(node);
-        }
         return false;
-      }
-      if (tagCache.match(node)) {
-        if (tagCache.validate(node, env) === false) {
-          remove.add(node);
-        }
-      }
-      if (tagScript.match(node)) {
-        tagScript.validate(node, env);
-        if (node.attributes.get("context") !== "component") {
-          remove.add(node);
-        }
-      }
-      if (tagElement.match(node)) {
-        if (tagElement.validate(node, env) === false) {
-          remove.add(node);
-        }
-      }
-      if (tagIf.match(node)) {
-        if (tagIf.validate(node, env) === false) {
-          remove.add(node);
-        }
-      }
-      if (tagFor.match(node)) {
-        if (tagFor.validate(node, env) === false) {
-          remove.add(node);
-        }
-      }
-      if (tagFragment.match(node)) {
-        if (tagFragment.validate(node, env) === false) {
-          remove.add(node);
-        }
-      }
-      if (node.tag === "ssr-portal") {
-        const name = node.attributes.get("name");
-        if (name === undefined) {
-          console.warn(`<ssr-portal> missing "name" property`);
-          remove.add(node);
-        } else {
-          // Fragments may appear before or after this portal in the node tree
-          // A temporary comment is replaced later with extracted fragments
-          // Random UUID is used to avoid authored comment conflicts
-          const comment = `<!--${crypto.randomUUID()}-->`;
-          node.append(new Node(node, "COMMENT", comment));
-          env.portals.set(name, comment);
-        }
       }
     });
     // Remove nodes that failed validation
@@ -301,10 +290,10 @@ export class Hypermore {
           case "ssr-fragment":
             await tagFragment.render(node, env);
             break render;
-          case "ssr-slot":
-            await this.renderChildren(node, env);
-            break render;
           case "ssr-portal":
+            await tagPortal.render(node, env);
+            break render;
+          case "ssr-slot":
             await this.renderChildren(node, env);
             break render;
         }

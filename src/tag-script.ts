@@ -10,6 +10,10 @@ const validate = (node: Node): boolean => {
     console.warn(`<ssr-script> with no content`);
     return false;
   }
+  if (node.attributes.get("context") !== "component") {
+    // console.warn(`<ssr-script> invalid "context" attribute`);
+    return false;
+  }
   return true;
 };
 
