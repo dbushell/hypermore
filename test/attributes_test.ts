@@ -42,6 +42,11 @@ Deno.test("attributes", async (test) => {
     const output = await hypermore.render(html);
     assertEquals(output, `<div hidden/>`);
   });
+  await test.step("random expressions", async () => {
+    const html = `<div a="{{'1'}}" b="{{1+1}}" />`;
+    const output = await hypermore.render(html);
+    assertEquals(output, `<div a="1" b="2"/>`);
+  });
   await test.step("grave attribute", async () => {
     const html = `<div hidden="\`" />`;
     const output = await hypermore.render(html);

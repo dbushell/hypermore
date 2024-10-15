@@ -320,17 +320,14 @@ export class Hypermore {
       let tagOpen = node.tagOpen;
       // Parse attributes
       if (node.attributes.size) {
-        let id = crypto.randomUUID();
-        if (env.uuid) id = `\${${env.uuid}}-${id}`;
-        tagOpen = `<${node.tag}${id}`;
+        tagOpen = `<${node.tag}\`+__ATTRIBUTES(__ATTR)+\``;
         tagOpen += node.type === "VOID" ? "/>" : ">";
-        let code = `{\nconst attr = new Map();\n`;
+        // Setup attribute callback
+        env.code += `\nconst __ATTR = new Map();\n`;
         for (let [key, value] of node.attributes) {
           value = encodeVars(value, true);
-          code += `try { attr.set('${key}', ${value}); } catch {}\n`;
+          env.code += `try { __ATTR.set('${key}', ${value}); } catch {}\n`;
         }
-        code += `__REPLACE.set(\`${id}\`, __ATTRIBUTES(attr));\n}\n`;
-        env.code += code;
       }
       const autoEscape = env.ctx.autoEscape;
       env.ctx.autoEscape = false;

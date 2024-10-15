@@ -3,7 +3,6 @@ import { escapeChars } from "./utils.ts";
 
 export const envHeader = `
 let __EXPORT = "";
-const __REPLACE = new Map();
 const __PORTALS = new Map();
 const __FRAGMENTS = new Set();
 const __ENTITIES = new Map([
@@ -19,7 +18,7 @@ const __ESC = (value, escape) => {
   return String(value).replaceAll(__ENTITY_KEYS, (k) => __ENTITIES.get(k));
 };
 const __ATTRIBUTES = (attr) => {
-  let newAttr = [];
+  const newAttr = [];
   attr.forEach((v, k) => {
     if (v === undefined || v === null) return;
     if (v === "") {
@@ -53,17 +52,14 @@ const __FOR_ITEMS = (items) => {
 `;
 
 export const envFooter = `
-const _FRAGMENT_VALUES = [...__FRAGMENTS.values()];
+const __FRAGMENT_VALUES = [...__FRAGMENTS.values()];
 for (const [name, comment] of __PORTALS) {
   __EXPORT = __EXPORT.replace(comment, () => {
-    return _FRAGMENT_VALUES
+    return __FRAGMENT_VALUES
       .map(({ html, portal }) => (portal === name ? html : ""))
       .join("");
   });
 }
-__REPLACE.forEach((v, k) => {
-  __EXPORT = __EXPORT.replace(k, () => typeof v === "function" ? v() : v);
-});
 return __EXPORT;
 `;
 
