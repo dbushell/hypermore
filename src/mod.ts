@@ -1,5 +1,5 @@
 import type { Environment, JSONObject, Options } from "./types.ts";
-import { Node, parseHTML } from "./parse.ts";
+import { inlineTags, Node, parseHTML } from "./parse.ts";
 import {
   addVars,
   encodeVars,
@@ -8,7 +8,7 @@ import {
   parseVars,
   renderEnv,
 } from "./environment.ts";
-import { escapeChars, toCamelCase } from "./utils.ts";
+import { escapeChars, spaceChar, toCamelCase } from "./utils.ts";
 import tagIf from "./tag-if.ts";
 import tagFor from "./tag-for.ts";
 import tagHtml from "./tag-html.ts";
@@ -144,7 +144,6 @@ export class Hypermore {
     } catch (err) {
       console.error(err);
     }
-    result = result.trim();
     // Extract cache element for later renders
     if (env.caches.size) {
       const map = getCacheMap(this);
@@ -239,15 +238,7 @@ export class Hypermore {
         console.warn(`stray closing tag "${node.tag}"`);
         break render;
       case "TEXT": {
-        if (node.raw.length === 0) break render;
-        let text = node.raw;
-        if (/^\s*$/.test(text)) {
-          text = text.indexOf("\n") > -1 ? "\n" : " ";
-        } else {
-          if (env.ctx.autoEscape) text = escapeChars(text);
-          text = parseVars(text, env.ctx.autoEscape);
-        }
-        env.code += `__EXPORT += \`${text}\`;\n`;
+        await this.renderText(node, env);
         break render;
       }
       case "ELEMENT":
@@ -348,5 +339,40 @@ export class Hypermore {
     if (renderTypes.has(node.type)) {
       await this.renderNode(new Node(null, "TEXT", node.tagClose), env);
     }
+  }
+
+  /**
+   * Render text Node to HTML
+   * @param node Node
+   * @returns HTML string
+   */
+  async renderText(node: Node, env: Environment): Promise<void> {
+    if (node.raw.length === 0) return;
+    let text = node.raw;
+    const inline = inlineTags.has(node.parent?.tag ?? "");
+    // Collapse full whitespace
+    if (/^\s*$/.test(text)) {
+      // Skip if start or end node
+      if (inline || node.parent?.type === "ROOT") {
+        if (node.next === null || node.previous === null) return;
+      }
+      text = spaceChar(text, inline);
+    } else {
+      let match: RegExpMatchArray | null;
+      // Collapse leading whitespace
+      if ((match = text.match(/^\s{2,}/))) {
+        text = spaceChar(match[0], inline) + text.trimStart();
+      }
+      // Collapse trailing whitespace
+      if ((match = text.match(/\s{2,}$/))) {
+        text = text.trimEnd() + spaceChar(match[0], inline);
+      }
+      // Collapse inner whitespace
+      text = text.replace(/\s{2,}/g, (str) => spaceChar(str, inline));
+      // Escape and parse text
+      if (env.ctx.autoEscape) text = escapeChars(text);
+      text = parseVars(text, env.ctx.autoEscape);
+    }
+    env.code += `__EXPORT += \`${text}\`;\n`;
   }
 }

@@ -19,6 +19,11 @@ export const escapeChars = (str: string, chars = ["`", "${"]): string => {
   return str;
 };
 
+/** Replacement character for text nodes */
+export const spaceChar = (str: string, inline = false) => {
+  return inline ? " " : str.indexOf("\n") > -1 ? "\n" : " ";
+};
+
 /**
  * @std/text - https://jsr.io/@std/text
  * Copyright 2018-2024 the Deno authors. All rights reserved. MIT license.
