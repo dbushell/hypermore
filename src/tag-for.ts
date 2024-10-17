@@ -33,17 +33,28 @@ const render = async (node: Node, env: Environment): Promise<void> => {
   const item = node.attributes.get("item")!;
   const index = node.attributes.get("index");
   const expression = node.attributes.get("of")!;
-  addVars({ __ITEMS: `{{${expression}}}` }, [], env, true);
+  // Stack items prop
+  const forProps = { __ITEMS: `{{${expression}}}` };
+  addVars(forProps, env.localProps, env);
+  env.localProps.push(forProps);
   env.code +=
     `for (const [__INDEX, __ITEM] of [...__FOR_ITEMS(__ITEMS)].entries()) {\n`;
-  env.code += `const ${item} = __ITEM;\n`;
-  if (index) env.code += `const ${index} = __INDEX;\n`;
+  // Stack item prop
+  const itemProps = { [item]: "{{__ITEM}}" };
+  if (index) itemProps[index] = "{{__INDEX}}";
+  const updatedProps = addVars(itemProps, env.localProps, env);
+  env.localProps.push(itemProps);
+  // Render children
   env.uuid = "__INDEX";
   for (const child of node.children) {
     await env.ctx.renderNode(child, env);
   }
   env.uuid = undefined;
   env.code += `}\n`;
+  // Reset props stack
+  addVars(updatedProps, env.localProps, env);
+  env.localProps.pop();
+  env.localProps.pop();
 };
 
 const Tag: HyperTag = {

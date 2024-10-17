@@ -1,6 +1,6 @@
 {
   "name": "@dbushell/hypermore",
-  "version": "0.23.0",
+  "version": "0.24.0",
   "exports": {
     ".": "./mod.ts"
   },

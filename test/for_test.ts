@@ -59,5 +59,13 @@ Deno.test("<ssr-for> tag", async (test) => {
     const output = await hypermore.render(html);
     assertEquals(output, "123abc");
   });
+  await test.step("props reset", async () => {
+    const html = `<ssr-for index="i" item="n" of="3">{{n}}</for>{{i}}{{n}}`;
+    const output = await hypermore.render(html, {
+      i: "A",
+      n: "B",
+    });
+    assertEquals(output, "012AB");
+  });
   warn.release();
 });
