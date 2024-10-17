@@ -125,9 +125,12 @@ export class Hypermore {
       caches: new Map(),
     };
     // Add global props object
-    addVars({ $global: this.#globalProps, $local: {} }, [], env, false);
-    // Add destructured global props
-    addVars(this.#globalProps, [], env, false);
+    addVars(
+      { ...this.#globalProps, $global: this.#globalProps },
+      [],
+      env,
+      false,
+    );
     // Parse and validate template node
     const node = parseHTML(html);
     this.parseNode(node, env);
@@ -289,7 +292,7 @@ export class Hypermore {
     // End nested block scope
     env.code += "}\n";
     // Reset prop values and stack
-    if (updatedProps && Object.keys(updatedProps).length) {
+    if (Object.keys(updatedProps).length) {
       if (Object.hasOwn(updatedProps, "$local")) {
         updatedProps["$local"] = updatedProps["$localId"];
       }

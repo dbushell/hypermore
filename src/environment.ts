@@ -146,7 +146,11 @@ export const addVars = (
   env: Environment,
   parse = true,
 ): JSONObject => {
+  let code = "";
+  let codeHead = "";
   const updated: JSONObject = {};
+  const isLocal = Object.hasOwn(props, "$local");
+  const isGlobal = Object.hasOwn(props, "$global");
   for (const [key, value] of Object.entries(props)) {
     // Check stack for previous definition
     for (let i = prevProps.length - 1; i > -1; i--) {
@@ -159,22 +163,29 @@ export const addVars = (
     }
     if (key === "$localId") continue;
 
-    // Original type before encoding to string
-    const valueType = typeof value;
     // Encode and render output
     const valueEncode = encodeVars(value, parse);
 
     const prefix = Object.hasOwn(updated, key) ? "" : "let ";
     if (key === "$local") {
-      if (valueType === "object") {
-        env.code += `__LOCALS.set(\`${props.$localId}\`, ${valueEncode});\n`;
-        env.code += `${prefix}${key} = __LOCALS.get(\`${props.$localId}\`);\n`;
+      if (typeof value === "object") {
+        codeHead += `__LOCALS.set(\`${props.$localId}\`, ${valueEncode});\n`;
+        codeHead += `${prefix}${key} = __LOCALS.get(\`${props.$localId}\`);\n`;
       } else {
-        env.code += `${prefix}${key} = __LOCALS.get(${valueEncode});\n`;
+        codeHead += `${prefix}${key} = __LOCALS.get(${valueEncode});\n`;
       }
+    } else if (key === "$global") {
+      codeHead += `${prefix}${key} = ${valueEncode};\n`;
     } else {
-      env.code += `${prefix}${key} = ${valueEncode};\n`;
+      if (isLocal) {
+        code += `${prefix}${key} = $local['${key}'];\n`;
+      } else if (isGlobal) {
+        code += `${prefix}${key} = $global['${key}'];\n`;
+      } else {
+        code += `${prefix}${key} = ${valueEncode};\n`;
+      }
     }
   }
+  env.code += codeHead + code;
   return updated;
 };
