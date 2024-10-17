@@ -3,6 +3,7 @@ import { escapeChars } from "./utils.ts";
 
 export const envHeader = `
 let __EXPORT = "";
+const __LOCALS = new Map();
 const __PORTALS = new Map();
 const __FRAGMENTS = new Set();
 const __ENTITIES = new Map([
@@ -146,7 +147,7 @@ export const addVars = (
   parse = true,
 ): JSONObject => {
   const updated: JSONObject = {};
-  for (let [key, value] of Object.entries(props)) {
+  for (const [key, value] of Object.entries(props)) {
     // Check stack for previous definition
     for (let i = prevProps.length - 1; i > -1; i--) {
       if (Object.keys(prevProps[i]).includes(key)) {
@@ -156,10 +157,24 @@ export const addVars = (
         }
       }
     }
+    if (key === "$localId") continue;
+
+    // Original type before encoding to string
+    const valueType = typeof value;
     // Encode and render output
-    value = encodeVars(value, parse);
-    if (Object.hasOwn(updated, key) === false) env.code += `let `;
-    env.code += `${key} = ${value};\n`;
+    const valueEncode = encodeVars(value, parse);
+
+    const prefix = Object.hasOwn(updated, key) ? "" : "let ";
+    if (key === "$local") {
+      if (valueType === "object") {
+        env.code += `__LOCALS.set(\`${props.$localId}\`, ${valueEncode});\n`;
+        env.code += `${prefix}${key} = __LOCALS.get(\`${props.$localId}\`);\n`;
+      } else {
+        env.code += `${prefix}${key} = __LOCALS.get(${valueEncode});\n`;
+      }
+    } else {
+      env.code += `${prefix}${key} = ${valueEncode};\n`;
+    }
   }
   return updated;
 };

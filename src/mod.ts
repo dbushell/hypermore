@@ -125,7 +125,7 @@ export class Hypermore {
       caches: new Map(),
     };
     // Add global props object
-    addVars({ $global: this.#globalProps }, [], env, false);
+    addVars({ $global: this.#globalProps, $local: {} }, [], env, false);
     // Add destructured global props
     addVars(this.#globalProps, [], env, false);
     // Parse and validate template node
@@ -216,6 +216,7 @@ export class Hypermore {
     }
     if (Object.keys(props).length) {
       newProps.$local = { ...newProps };
+      newProps.$localId = crypto.randomUUID();
     }
     // Update props stack
     const updatedProps = addVars(newProps, env.localProps, env);
@@ -289,7 +290,9 @@ export class Hypermore {
     env.code += "}\n";
     // Reset prop values and stack
     if (updatedProps && Object.keys(updatedProps).length) {
-      delete updatedProps["$local"];
+      if (Object.hasOwn(updatedProps, "$local")) {
+        updatedProps["$local"] = updatedProps["$localId"];
+      }
       addVars(updatedProps, env.localProps, env);
     }
     env.localProps.pop();

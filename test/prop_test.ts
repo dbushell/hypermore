@@ -79,6 +79,14 @@ Deno.test("props", async (test) => {
     });
     assertEquals(output, `42 <p>777</p> 42`);
   });
+  await test.step("$local prop reset", async () => {
+    const html =
+      `{{$local.number}} <my-prop number="777" other="42" /> {{$local.number}}`;
+    const output = await hypermore.render(html, {
+      number: 42,
+    });
+    assertEquals(output, `42 <p>777</p> 42`);
+  });
   await test.step("camel case conversion", async () => {
     const html =
       `<single-slot camel-case="Pass!">{{ camelCase }}</single-slot>`;
