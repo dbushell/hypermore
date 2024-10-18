@@ -77,4 +77,14 @@ Deno.exit(1);
     const output = await hypermore.render(html);
     assertEquals(output, html.replaceAll("{{!", "{{"));
   });
+  await test.step("function expression", async () => {
+    const html = "{{[1,2,3].find(n => n === 3)}}";
+    const output = await hypermore.render(html);
+    assertEquals(output, "3");
+  });
+  await test.step("function props", async () => {
+    const html = `<my-prop number="{{[1,2,3].find(n =&gt; n === 3)}}" />`;
+    const output = await hypermore.render(html);
+    assertEquals(output, `<p>3</p>`);
+  });
 });
