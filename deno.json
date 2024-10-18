@@ -1,6 +1,6 @@
 {
   "name": "@dbushell/hypermore",
-  "version": "0.25.0",
+  "version": "0.26.0",
   "exports": {
     ".": "./mod.ts"
   },
@@ -11,5 +11,7 @@
   "lint": {
     "include": ["**/*.ts"]
   },
-  "imports": { "@dbushell/hyperless": "jsr:@dbushell/hyperless@^0.24.0" }
+  "imports": {
+    "@dbushell/hyperless": "jsr:@dbushell/hyperless@^0.26.0"
+  }
 }
