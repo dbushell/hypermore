@@ -157,6 +157,7 @@ export class Hypermore {
           continue;
         }
         map.set(name, parts[1]);
+        result = result.replaceAll(`<!--[${id}]-->`, "");
       }
     }
     return result;

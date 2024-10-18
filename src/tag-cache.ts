@@ -18,13 +18,15 @@ export const getCacheMap = (ctx: Hypermore): Map<string, string> => {
 const match = (node: string | Node): boolean =>
   (typeof node === "string" ? node : node.tag) === tagName;
 
-const validate = (node: Node): boolean => {
-  if (node.size === 0) {
-    console.warn(`<ssr-cache> with no content`);
+const validate = (node: Node, env: Environment): boolean => {
+  const name = node.attributes.get("name");
+  if (name === undefined) {
+    console.warn(`<ssr-cache> missing "name" property`);
     return false;
   }
-  if (node.attributes.has("name") === false) {
-    console.warn(`<ssr-cache> missing "name" property`);
+  const map = getCacheMap(env.ctx);
+  if (map.has(name) === false && node.size === 0) {
+    console.warn(`<ssr-cache> with no content`);
     return false;
   }
   return true;

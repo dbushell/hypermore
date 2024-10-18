@@ -6,13 +6,7 @@ HTML preprocessor and template engine built with [Hyperless](https://github.com/
 
 ⚠️ **Work in progress!** ⚠️
 
-## Documentation
-
-* [Custom Elements](docs/custom-elements.md)
-* [Variables, Expressions, and Props](docs/variables-expressions-props.md)
-* Slots, Fragments, and Portals
-* If Conditions
-* For Loops
+[Documentation](/docs/documentation.md)
 
 * * *
 
